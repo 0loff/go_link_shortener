@@ -49,8 +49,6 @@ func createLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(linkStorage[base64.RawStdEncoding.EncodeToString(rData)]))
-
-	return
 }
 
 func getLink(w http.ResponseWriter, r *http.Request) {
