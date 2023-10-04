@@ -90,6 +90,9 @@ func TestRequestHandler(t *testing.T) {
 				resultBody, err := io.ReadAll(result.Body)
 				require.NoError(t, err)
 
+				err = result.Body.Close()
+				require.NoError(t, err)
+
 				assert.Equal(t, tc.want.expectedBody, string(resultBody), "Request body ответа не совпадает с ожидаемым")
 			} else if tc.method == http.MethodGet {
 				assert.Equal(t, tc.want.expectedHeader, w.Header().Get("Location"), "Заголовок не соответствует ожидаемому")
