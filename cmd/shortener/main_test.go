@@ -112,6 +112,7 @@ func TestRequestHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, respBody := testRequest(t, ts, tc.method, tc.path, tc.body)
+			resp.Body.Close()
 
 			require.Equal(t, tc.want.expectedCode, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
 			if tc.header != "" {
