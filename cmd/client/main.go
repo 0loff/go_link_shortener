@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	long = strings.TrimSuffix('\n')
+	long = strings.TrimSuffix(long, "\n")
 	// Заполняем контейнер данными
 	data.Set("url", long)
 	// Добавляем HTTP клиент
