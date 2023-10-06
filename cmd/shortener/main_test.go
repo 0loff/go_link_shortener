@@ -11,7 +11,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
+	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+	require.NoError(t, err)
+
+	ts.Client().CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	resp, err := ts.Client().Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	return resp, string(respBody)
+}
+
 func TestRequestHandler(t *testing.T) {
+	ts := httptest.NewServer(CustomRouter())
+	defer ts.Close()
+
 	type want struct {
 		expectedCode   int
 		expectedHeader string
@@ -20,6 +41,7 @@ func TestRequestHandler(t *testing.T) {
 	testCases := []struct {
 		name   string
 		method string
+		header string
 		path   string
 		body   string
 		want   want
@@ -27,6 +49,7 @@ func TestRequestHandler(t *testing.T) {
 		{
 			name:   "test POST request",
 			method: http.MethodPost,
+			header: "Content-Type",
 			path:   "/",
 			body:   "https://practicum.yandex.ru/",
 			want: want{
@@ -38,6 +61,7 @@ func TestRequestHandler(t *testing.T) {
 		{
 			name:   "test GET request",
 			method: http.MethodGet,
+			header: "Location",
 			path:   "/aHR0cHM6Ly9wcmFjdGljdW0ueWFuZGV4LnJ1Lw",
 			body:   "",
 			want: want{
@@ -47,8 +71,21 @@ func TestRequestHandler(t *testing.T) {
 			},
 		},
 		{
+			name:   "test GET request without URL Path",
+			method: http.MethodGet,
+			header: "",
+			path:   "/",
+			body:   "",
+			want: want{
+				expectedCode:   http.StatusMethodNotAllowed,
+				expectedHeader: "",
+				expectedBody:   "",
+			},
+		},
+		{
 			name:   "test PUT request",
 			method: http.MethodPut,
+			header: "",
 			path:   "/",
 			body:   "",
 			want: want{
@@ -60,6 +97,7 @@ func TestRequestHandler(t *testing.T) {
 		{
 			name:   "test DELETE request",
 			method: http.MethodDelete,
+			header: "",
 			path:   "/",
 			body:   "",
 			want: want{
@@ -73,31 +111,14 @@ func TestRequestHandler(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			bodyReader := strings.NewReader(tc.body)
+			resp, respBody := testRequest(t, ts, tc.method, tc.path, tc.body)
 
-			r := httptest.NewRequest(tc.method, tc.path, bodyReader)
-			w := httptest.NewRecorder()
-
-			requestHandler(w, r)
-
-			result := w.Result()
-
-			require.Equal(t, tc.want.expectedCode, w.Code, "Код ответа не совпадает с ожидаемым")
-
-			if tc.method == http.MethodPost {
-				assert.Equal(t, tc.want.expectedHeader, w.Header().Get("Content-type"), "Заголовок не соответствует ожидаемому")
-
-				resultBody, err := io.ReadAll(result.Body)
-				require.NoError(t, err)
-
-				err = result.Body.Close()
-				require.NoError(t, err)
-
-				assert.Equal(t, tc.want.expectedBody, string(resultBody), "Request body ответа не совпадает с ожидаемым")
-			} else if tc.method == http.MethodGet {
-				assert.Equal(t, tc.want.expectedHeader, w.Header().Get("Location"), "Заголовок не соответствует ожидаемому")
+			require.Equal(t, tc.want.expectedCode, resp.StatusCode, "Код ответа не совпадает с ожидаемым")
+			if tc.header != "" {
+				assert.Equal(t, tc.want.expectedHeader, resp.Header.Get(tc.header), "Заголовок не соответствует ожидаемому")
 			}
 
+			assert.Equal(t, tc.want.expectedBody, string(respBody), "Request body ответа не совпадает с ожидаемым")
 		})
 	}
 }

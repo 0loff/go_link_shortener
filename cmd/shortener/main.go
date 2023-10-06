@@ -5,63 +5,61 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 var linkStorage = map[string]string{}
 
-func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", requestHandler)
-
-	err := http.ListenAndServe(`:8080`, mux)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func requestHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		createLink(w, r)
-
-	case http.MethodGet:
-		getLink(w, r)
-
-	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-}
-
 func createLink(w http.ResponseWriter, r *http.Request) {
-	rData, err := io.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if len(r.URL.Path[1:]) != 0 {
+	if len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	linkStorage[base64.RawStdEncoding.EncodeToString(rData)] = string(rData)
+	linkStorage[base64.RawStdEncoding.EncodeToString(body)] = string(body)
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://127.0.0.1:8080/" + base64.RawStdEncoding.EncodeToString(rData)))
+	w.Write([]byte("http://127.0.0.1:8080/" + base64.RawStdEncoding.EncodeToString(body)))
 }
 
 func getLink(w http.ResponseWriter, r *http.Request) {
-	if len(r.URL.Path) > 1 {
-		link, ok := linkStorage[r.URL.Path[1:]]
 
-		if ok {
-			w.Header().Set("Location", link)
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			return
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+	link, ok := linkStorage[r.URL.Path[1:]]
+
+	if ok {
+		w.Header().Set("Location", link)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+}
+
+func CustomRouter() chi.Router {
+	r := chi.NewRouter()
+
+	return r.Route("/", func(r chi.Router) {
+		r.Post("/", createLink)
+		r.Get("/{id}", getLink)
+	})
+}
+
+func notAllowedRequest(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+}
+
+func main() {
+
+	err := http.ListenAndServe(`:8080`, CustomRouter())
+	if err != nil {
+		panic(err)
 	}
 }
