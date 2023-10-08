@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 )
 
 var config Config
@@ -37,6 +38,14 @@ func NewConfigBuilder() error {
 	flag.StringVar(&shortLinkHost, "b", "http://localhost:8080", "host for short link")
 
 	flag.Parse()
+
+	if envHost := os.Getenv("SERVER_ADDRES"); envHost != "" {
+		host = envHost
+	}
+
+	if envBaseUrl := os.Getenv("BASE_URL"); envBaseUrl != "" {
+		shortLinkHost = envBaseUrl
+	}
 
 	config = new(ConfigBuilder).
 		SetHost(host).
