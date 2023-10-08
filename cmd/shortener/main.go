@@ -27,7 +27,7 @@ func createLink(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://" + config.ShortLinkHost + "/" + base64.RawStdEncoding.EncodeToString(body)))
+	w.Write([]byte(config.ShortLinkHost + "/" + base64.RawStdEncoding.EncodeToString(body)))
 }
 
 func getLink(w http.ResponseWriter, r *http.Request) {
