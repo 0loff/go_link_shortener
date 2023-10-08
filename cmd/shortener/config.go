@@ -34,7 +34,7 @@ func NewConfigBuilder() error {
 	flag.StringVar(&host, "a", "localhost:8080", "server host")
 
 	var shortLinkHost string
-	flag.StringVar(&shortLinkHost, "b", "localhost:8000", "host for short link")
+	flag.StringVar(&shortLinkHost, "b", "localhost:8080", "host for short link")
 
 	flag.Parse()
 
