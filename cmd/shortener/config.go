@@ -43,8 +43,8 @@ func NewConfigBuilder() error {
 		host = envHost
 	}
 
-	if envBaseUrl := os.Getenv("BASE_URL"); envBaseUrl != "" {
-		shortLinkHost = envBaseUrl
+	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
+		shortLinkHost = envBaseURL
 	}
 
 	config = new(ConfigBuilder).
