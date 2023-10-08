@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -26,7 +27,7 @@ func createLink(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://127.0.0.1:8080/" + base64.RawStdEncoding.EncodeToString(body)))
+	w.Write([]byte("http://" + config.ShortLinkHost + "/" + base64.RawStdEncoding.EncodeToString(body)))
 }
 
 func getLink(w http.ResponseWriter, r *http.Request) {
@@ -57,9 +58,14 @@ func notAllowedRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	NewConfigBuilder()
 
-	err := http.ListenAndServe(`:8080`, CustomRouter())
-	if err != nil {
+	if err := run(); err != nil {
 		panic(err)
 	}
+}
+
+func run() error {
+	fmt.Println("Running server on", config.Host)
+	return http.ListenAndServe(config.Host, CustomRouter())
 }

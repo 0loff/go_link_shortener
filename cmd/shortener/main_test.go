@@ -30,6 +30,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 }
 
 func TestRequestHandler(t *testing.T) {
+	NewConfigBuilder()
 	ts := httptest.NewServer(CustomRouter())
 	defer ts.Close()
 
@@ -55,7 +56,7 @@ func TestRequestHandler(t *testing.T) {
 			want: want{
 				expectedCode:   http.StatusCreated,
 				expectedHeader: "text/plain",
-				expectedBody:   "http://127.0.0.1:8080/aHR0cHM6Ly9wcmFjdGljdW0ueWFuZGV4LnJ1Lw",
+				expectedBody:   "http://localhost:8000/aHR0cHM6Ly9wcmFjdGljdW0ueWFuZGV4LnJ1Lw",
 			},
 		},
 		{
@@ -109,6 +110,7 @@ func TestRequestHandler(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+
 		t.Run(tc.name, func(t *testing.T) {
 
 			resp, respBody := testRequest(t, ts, tc.method, tc.path, tc.body)
