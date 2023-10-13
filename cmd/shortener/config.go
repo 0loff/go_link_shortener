@@ -30,7 +30,7 @@ func (cb ConfigBuilder) Build() Config {
 	return cb.config
 }
 
-func NewConfigBuilder() error {
+func NewConfigBuilder() {
 	var host string
 	flag.StringVar(&host, "a", "localhost:8080", "server host")
 
@@ -51,6 +51,4 @@ func NewConfigBuilder() error {
 		SetHost(host).
 		SetShortLinkHost(shortLinkHost).
 		Build()
-
-	return nil
 }

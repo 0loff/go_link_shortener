@@ -31,6 +31,8 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 
 func TestRequestHandler(t *testing.T) {
 	NewConfigBuilder()
+	LinkStorageInit()
+
 	ts := httptest.NewServer(CustomRouter())
 	defer ts.Close()
 
@@ -56,14 +58,14 @@ func TestRequestHandler(t *testing.T) {
 			want: want{
 				expectedCode:   http.StatusCreated,
 				expectedHeader: "text/plain",
-				expectedBody:   "http://localhost:8080/aHR0cHM6Ly9wcmFjdGljdW0ueWFuZGV4LnJ1Lw",
+				expectedBody:   "http://localhost:8080/OL0ZGlVC3dq",
 			},
 		},
 		{
 			name:   "test GET request",
 			method: http.MethodGet,
 			header: "Location",
-			path:   "/aHR0cHM6Ly9wcmFjdGljdW0ueWFuZGV4LnJ1Lw",
+			path:   "/OL0ZGlVC3dq",
 			body:   "",
 			want: want{
 				expectedCode:   http.StatusTemporaryRedirect,

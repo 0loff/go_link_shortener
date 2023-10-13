@@ -1,21 +1,25 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
 
-var linkStorage = map[string]string{}
+const (
+	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+)
 
 func createLink(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 
 	if len(body) == 0 {
@@ -23,25 +27,49 @@ func createLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	linkStorage[base64.RawStdEncoding.EncodeToString(body)] = string(body)
+	var shortURL string
+	existedShortURL := storage.FindByLink(string(body))
+	if existedShortURL != "" {
+		shortURL = existedShortURL
+	} else {
+		shortURL = shortURLBuilder()
+		storage.SetShortLink(shortURL, string(body))
+	}
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(config.ShortLinkHost + "/" + base64.RawStdEncoding.EncodeToString(body)))
+	w.Write([]byte(config.ShortLinkHost + "/" + shortURL))
 }
 
 func getLink(w http.ResponseWriter, r *http.Request) {
 
-	link, ok := linkStorage[r.URL.Path[1:]]
+	link, ok := storage.GetShortLink(r.URL.Path[1:])
 
 	if ok {
 		w.Header().Set("Location", link)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		return
 	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	return
+}
+
+func Base62Encode(id uint64) string {
+	length := len(alphabet)
+	var encodedBuilder strings.Builder
+
+	encodedBuilder.Grow(10)
+
+	for ; id > 0; id = id / uint64(length) {
+		encodedBuilder.WriteByte(alphabet[(id % uint64(length))])
+	}
+
+	return encodedBuilder.String()
+}
+
+func shortURLBuilder() string {
+	return Base62Encode(rand.Uint64())
 }
 
 func CustomRouter() chi.Router {
@@ -53,12 +81,9 @@ func CustomRouter() chi.Router {
 	})
 }
 
-func notAllowedRequest(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusMethodNotAllowed)
-}
-
 func main() {
 	NewConfigBuilder()
+	LinkStorageInit()
 
 	if err := run(); err != nil {
 		panic(err)
