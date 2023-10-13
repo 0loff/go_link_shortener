@@ -15,7 +15,7 @@ func (ls LinkStorageRepository) LinkStorageCreate() LinkStorageRepository {
 	return ls
 }
 
-func (ls LinkStorageRepository) FindById(id string) (string, bool) {
+func (ls LinkStorageRepository) FindByID(id string) (string, bool) {
 	entry, ok := ls.linkEntries[id]
 	return entry, ok
 }
@@ -30,13 +30,13 @@ func (ls LinkStorageRepository) FindByLink(link string) string {
 	return ""
 }
 
-func (ls LinkStorageRepository) SetShortLink(shortUrl string, originUrl string) LinkStorageRepository {
-	ls.linkEntries[shortUrl] = originUrl
+func (ls LinkStorageRepository) SetShortLink(shortURL string, originURL string) LinkStorageRepository {
+	ls.linkEntries[shortURL] = originURL
 	return ls
 }
 
-func (ls LinkStorageRepository) GetShortLink(shortUrl string) (string, bool) {
-	entry, ok := ls.FindById(shortUrl)
+func (ls LinkStorageRepository) GetShortLink(shortURL string) (string, bool) {
+	entry, ok := ls.FindByID(shortURL)
 	return entry, ok
 }
 

@@ -52,7 +52,6 @@ func getLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusBadRequest)
-	return
 }
 
 func Base62Encode(id uint64) string {
