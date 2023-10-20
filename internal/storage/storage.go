@@ -1,15 +1,16 @@
-package main
+package storage
 
 import (
 	"log"
 	"sync"
 )
 
-var storage LinkStorageRepository
+var Store LinkStorageRepository
 
 type LinkStorageRepository struct {
-	mu          sync.Mutex
-	linkEntries map[string]string
+	mu            sync.Mutex
+	linkEntries   map[string]string
+	shortLinkHost string
 }
 
 func (ls *LinkStorageRepository) LinkStorageCreate() {
@@ -46,12 +47,20 @@ func (ls *LinkStorageRepository) GetShortLink(shortURL string) (string, bool) {
 	return entry, ok
 }
 
+func (ls *LinkStorageRepository) SetShortLinkHost(shortLinkHost string) {
+	ls.shortLinkHost = shortLinkHost
+}
+
+func (ls *LinkStorageRepository) GetShortLinkHost() string {
+	return ls.shortLinkHost
+}
+
 func (ls *LinkStorageRepository) LogAllEntries() {
 	log.Println(ls)
 }
 
 func LinkStorageInit() {
-	storage = LinkStorageRepository{}
-	storage.LinkStorageCreate()
-	storage.SetShortLink("OL0ZGlVC3dq", "https://practicum.yandex.ru/")
+	Store = LinkStorageRepository{}
+	Store.LinkStorageCreate()
+	Store.SetShortLink("OL0ZGlVC3dq", "https://practicum.yandex.ru/")
 }

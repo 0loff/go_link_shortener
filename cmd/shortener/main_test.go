@@ -1,6 +1,8 @@
 package main
 
 import (
+	"go_link_shortener/internal/logger"
+	"go_link_shortener/internal/storage"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +33,11 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 
 func TestRequestHandler(t *testing.T) {
 	NewConfigBuilder()
-	LinkStorageInit()
+
+	storage.LinkStorageInit()
+	storage.Store.SetShortLinkHost(config.ShortLinkHost)
+
+	logger.Initialize(config.LogLevel)
 
 	ts := httptest.NewServer(CustomRouter())
 	defer ts.Close()
