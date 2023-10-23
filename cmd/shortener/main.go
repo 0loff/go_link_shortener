@@ -15,6 +15,7 @@ func CustomRouter() chi.Router {
 	return r.Route("/", func(r chi.Router) {
 		r.Post("/", logger.RequestLogger(http.HandlerFunc(handlers.CreateLinkHandler)))
 		r.Get("/{id}", logger.RequestLogger(http.HandlerFunc(handlers.GetLinkHandler)))
+		r.Post("/api/shorten", logger.RequestLogger(http.HandlerFunc(handlers.CreateLinkJSONHandler)))
 	})
 }
 

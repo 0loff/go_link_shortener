@@ -68,6 +68,30 @@ func TestRequestHandler(t *testing.T) {
 			},
 		},
 		{
+			name:   "test POST JSON request",
+			method: http.MethodPost,
+			header: "Content-Type",
+			path:   "/api/shorten",
+			body:   "{\"url\":\"https://practicum.yandex.ru/\"}",
+			want: want{
+				expectedCode:   http.StatusCreated,
+				expectedHeader: "application/json",
+				expectedBody:   "{\"result\":\"http://localhost:8080/OL0ZGlVC3dq\"}\n",
+			},
+		},
+		{
+			name:   "test POST JSON request",
+			method: http.MethodPost,
+			header: "",
+			path:   "/api/shorten",
+			body:   "",
+			want: want{
+				expectedCode:   http.StatusBadRequest,
+				expectedHeader: "",
+				expectedBody:   "",
+			},
+		},
+		{
 			name:   "test GET request",
 			method: http.MethodGet,
 			header: "Location",

@@ -36,10 +36,11 @@ func (ls *LinkStorageRepository) FindByLink(link string) string {
 	return ""
 }
 
-func (ls *LinkStorageRepository) SetShortLink(shortURL string, originURL string) {
+func (ls *LinkStorageRepository) SetShortLink(shortURL string, originURL string) string {
 	ls.mu.Lock()
 	ls.linkEntries[shortURL] = originURL
 	ls.mu.Unlock()
+	return shortURL
 }
 
 func (ls *LinkStorageRepository) GetShortLink(shortURL string) (string, bool) {
