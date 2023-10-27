@@ -5,17 +5,51 @@ import (
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/storage"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
+
+func gzipMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ow := w
+
+		acceptEncoding := r.Header.Get("Accept-Encoding")
+		supportGzip := strings.Contains(acceptEncoding, "gzip")
+
+		if supportGzip {
+			cw := newCompressWriter(w)
+			ow = cw
+			defer cw.Close()
+		}
+
+		contentEncoding := r.Header.Get("Content-Encoding")
+		sendsGzip := strings.Contains(contentEncoding, "gzip")
+
+		if sendsGzip {
+
+			cr, err := newCompressReader(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			r.Body = cr
+			defer cr.Close()
+		}
+		h.ServeHTTP(ow, r)
+	})
+}
 
 func CustomRouter() chi.Router {
 	r := chi.NewRouter()
 
 	return r.Route("/", func(r chi.Router) {
-		r.Post("/", logger.RequestLogger(http.HandlerFunc(handlers.CreateLinkHandler)))
-		r.Get("/{id}", logger.RequestLogger(http.HandlerFunc(handlers.GetLinkHandler)))
-		r.Post("/api/shorten", logger.RequestLogger(http.HandlerFunc(handlers.CreateLinkJSONHandler)))
+		r.Use(gzipMiddleware)
+		r.Use(logger.RequestLogger)
+		r.Post("/", http.HandlerFunc(handlers.CreateLinkHandler))
+		r.Get("/{id}", http.HandlerFunc(handlers.GetLinkHandler))
+		r.Post("/api/shorten", http.HandlerFunc(handlers.CreateLinkJSONHandler))
 	})
 }
 

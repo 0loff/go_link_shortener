@@ -26,6 +26,11 @@ func CreateLinkJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if string(originURL.URL) == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	resp := models.CreateURLResponsePayload{
 		Result: storage.Store.GetShortLinkHost() + "/" + shortURLResolver(string(originURL.URL)),
 	}
