@@ -89,7 +89,9 @@ func TestRequestHandler(t *testing.T) {
 	NewConfigBuilder()
 
 	storage.LinkStorageInit()
+	storage.Store.SetStorageFile(config.StorageFile)
 	storage.Store.SetShortLinkHost(config.ShortLinkHost)
+	storage.Store.LinkStorageRecover()
 
 	logger.Initialize(config.LogLevel)
 

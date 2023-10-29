@@ -47,6 +47,7 @@ func CustomRouter() chi.Router {
 	return r.Route("/", func(r chi.Router) {
 		r.Use(gzipMiddleware)
 		r.Use(logger.RequestLogger)
+
 		r.Post("/", http.HandlerFunc(handlers.CreateLinkHandler))
 		r.Get("/{id}", http.HandlerFunc(handlers.GetLinkHandler))
 		r.Post("/api/shorten", http.HandlerFunc(handlers.CreateLinkJSONHandler))
@@ -56,7 +57,9 @@ func CustomRouter() chi.Router {
 func main() {
 	NewConfigBuilder()
 	storage.LinkStorageInit()
+	storage.Store.SetStorageFile(config.StorageFile)
 	storage.Store.SetShortLinkHost(config.ShortLinkHost)
+	storage.Store.LinkStorageRecover()
 
 	if err := run(); err != nil {
 		panic(err)
