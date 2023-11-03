@@ -36,7 +36,7 @@ func NewProducer(filename string) (*Producer, error) {
 }
 
 func (p *Producer) WriteEntry(entry *Entry) error {
-	return p.encoder.Encode(&entry)
+	return p.encoder.Encode(entry)
 }
 
 func (p *Producer) Close() error {
@@ -57,7 +57,7 @@ func NewConsumer(filename string) (*Consumer, error) {
 
 func (c *Consumer) ReadEntry() (*Entry, error) {
 	entry := &Entry{}
-	if err := c.decoder.Decode(&entry); err != nil {
+	if err := c.decoder.Decode(entry); err != nil {
 		return nil, err
 	}
 

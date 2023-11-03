@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"go_link_shortener/internal/base62"
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/models"
+	"go_link_shortener/pkg/base62"
 
 	"go_link_shortener/internal/storage"
 	"io"
@@ -15,14 +15,13 @@ import (
 )
 
 func CreateLinkJSONHandler(w http.ResponseWriter, r *http.Request) {
-
 	var originURL models.CreateURLRequestPayload
 
 	dec := json.NewDecoder(r.Body)
 
 	if err := dec.Decode(&originURL); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		logger.Log.Debug("Cannot decode request JSON body", zap.Error(err))
+		logger.Log.Error("Cannot decode request JSON body", zap.Error(err))
 		return
 	}
 
@@ -40,7 +39,7 @@ func CreateLinkJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(resp); err != nil {
-		logger.Log.Debug("Error encoding response ", zap.Error(err))
+		logger.Log.Error("Error encoding response ", zap.Error(err))
 		return
 	}
 }
@@ -63,7 +62,6 @@ func CreateLinkHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLinkHandler(w http.ResponseWriter, r *http.Request) {
-
 	link, ok := storage.Store.GetShortLink(r.URL.Path[1:])
 
 	if ok {

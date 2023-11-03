@@ -67,6 +67,7 @@ func (ls *LinkStorageRepository) FindByLink(link string) string {
 
 func (ls *LinkStorageRepository) SetShortLink(shortURL string, originURL string) string {
 	ls.mu.Lock()
+	defer ls.mu.Unlock()
 	ls.linkEntries[shortURL] = originURL
 
 	entry := Entry{
@@ -77,7 +78,6 @@ func (ls *LinkStorageRepository) SetShortLink(shortURL string, originURL string)
 
 	ls.SaveEntryToFile(entry)
 
-	ls.mu.Unlock()
 	return shortURL
 }
 
