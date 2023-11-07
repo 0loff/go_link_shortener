@@ -8,10 +8,11 @@ import (
 var config Config
 
 type Config struct {
-	Host          string
-	ShortLinkHost string
-	LogLevel      string
-	StorageFile   string
+	Host         string
+	ShortURLHost string
+	LogLevel     string
+	StorageFile  string
+	DatabaseDSN  string
 }
 
 type ConfigBuilder struct {
@@ -23,8 +24,8 @@ func (cb ConfigBuilder) SetHost(host string) ConfigBuilder {
 	return cb
 }
 
-func (cb ConfigBuilder) SetShortLinkHost(shortLinkHost string) ConfigBuilder {
-	cb.config.ShortLinkHost = shortLinkHost
+func (cb ConfigBuilder) SetShortLinkHost(shortURLHost string) ConfigBuilder {
+	cb.config.ShortURLHost = shortURLHost
 	return cb
 }
 
@@ -38,6 +39,11 @@ func (cb ConfigBuilder) SetStorageFile(storageFile string) ConfigBuilder {
 	return cb
 }
 
+func (cb ConfigBuilder) SetDatabaseDSN(databaseDSN string) ConfigBuilder {
+	cb.config.DatabaseDSN = databaseDSN
+	return cb
+}
+
 func (cb ConfigBuilder) Build() Config {
 	return cb.config
 }
@@ -46,14 +52,17 @@ func NewConfigBuilder() {
 	var host string
 	flag.StringVar(&host, "a", "localhost:8080", "server host")
 
-	var shortLinkHost string
-	flag.StringVar(&shortLinkHost, "b", "http://localhost:8080", "host for short link")
+	var shortURLHost string
+	flag.StringVar(&shortURLHost, "b", "http://localhost:8080", "host for short link")
 
 	var logLevel string
 	flag.StringVar(&logLevel, "l", "info", "log level")
 
 	var storageFile string
 	flag.StringVar(&storageFile, "f", "/tmp/short-url-db.json", "storage file full name")
+
+	var databaseDSN string
+	flag.StringVar(&databaseDSN, "d", "host=localhost port=5432 user=videos password=secret dbname=videos sslmode=disable", "Database DSN config string")
 
 	flag.Parse()
 
@@ -62,7 +71,7 @@ func NewConfigBuilder() {
 	}
 
 	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
-		shortLinkHost = envBaseURL
+		shortURLHost = envBaseURL
 	}
 
 	if envLoglevel := os.Getenv("LOG_LEVEL"); envLoglevel != "" {
@@ -73,10 +82,15 @@ func NewConfigBuilder() {
 		storageFile = envStorageFile
 	}
 
+	if envStorageFile := os.Getenv("DATABASE_DSN"); envStorageFile != "" {
+		storageFile = envStorageFile
+	}
+
 	config = new(ConfigBuilder).
 		SetHost(host).
-		SetShortLinkHost(shortLinkHost).
+		SetShortLinkHost(shortURLHost).
 		SetLogLevel(logLevel).
 		SetStorageFile(storageFile).
+		SetDatabaseDSN(databaseDSN).
 		Build()
 }

@@ -1,4 +1,4 @@
-package storage
+package filehandler
 
 import (
 	"encoding/json"

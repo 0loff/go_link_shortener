@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"compress/gzip"
 	"go_link_shortener/internal/logger"
-	"go_link_shortener/internal/storage"
+	"go_link_shortener/pkg/handler"
+	"go_link_shortener/pkg/repository/mock"
+	"go_link_shortener/pkg/service"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -88,14 +91,22 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, requestHeader
 func TestRequestHandler(t *testing.T) {
 	NewConfigBuilder()
 
-	storage.LinkStorageInit()
-	storage.Store.SetStorageFile(config.StorageFile)
-	storage.Store.SetShortLinkHost(config.ShortLinkHost)
-	storage.Store.LinkStorageRecover()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := mock.NewMockURLKeeper(ctrl) // repo := repository.NewRepository(db)
+
+	repo.EXPECT().FindByLink("https://practicum.yandex.ru/").Return("OL0ZGlVC3dq").AnyTimes()
+	repo.EXPECT().FindByID("OL0ZGlVC3dq").Return("https://practicum.yandex.ru/", true).AnyTimes()
+	repo.EXPECT().FindByID("AOnykssfh8k").Return("", false)
+
+	services := service.NewService(repo, config.ShortURLHost, config.StorageFile)
+
+	handlers := handler.NewHandler(services)
+	Router := handlers.InitRoutes()
 
 	logger.Initialize(config.LogLevel)
 
-	ts := httptest.NewServer(CustomRouter())
+	ts := httptest.NewServer(Router)
 	defer ts.Close()
 
 	type want struct {

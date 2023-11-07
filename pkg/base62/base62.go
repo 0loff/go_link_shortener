@@ -9,6 +9,13 @@ const (
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
+type Base62Encoder struct {
+}
+
+func NewBase62Encoder() *Base62Encoder {
+	return &Base62Encoder{}
+}
+
 func encode(id uint64) string {
 	length := len(alphabet)
 	var encodedBuilder strings.Builder
@@ -22,6 +29,6 @@ func encode(id uint64) string {
 	return encodedBuilder.String()
 }
 
-func EncodedString() string {
+func (B62E *Base62Encoder) EncodeString() string {
 	return encode(rand.Uint64())
 }
