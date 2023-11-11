@@ -27,6 +27,6 @@ func (h *Handler) InitRoutes() chi.Router {
 		r.Post("/", http.HandlerFunc(h.CreateShortURL))
 		r.Post("/api/shorten", http.HandlerFunc(h.CreateShortURLjson))
 		r.Get("/{id}", http.HandlerFunc(h.GetShortURL))
-		r.Get("/ping", http.HandlerFunc(h.PingDBConnect))
+		r.Get("/ping", http.HandlerFunc(h.PingConnect))
 	})
 }

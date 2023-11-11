@@ -96,10 +96,10 @@ func TestRequestHandler(t *testing.T) {
 	repo := mock.NewMockURLKeeper(ctrl) // repo := repository.NewRepository(db)
 
 	repo.EXPECT().FindByLink("https://practicum.yandex.ru/").Return("OL0ZGlVC3dq").AnyTimes()
-	repo.EXPECT().FindByID("OL0ZGlVC3dq").Return("https://practicum.yandex.ru/", true).AnyTimes()
-	repo.EXPECT().FindByID("AOnykssfh8k").Return("", false)
+	repo.EXPECT().FindByID("OL0ZGlVC3dq").Return("https://practicum.yandex.ru/").AnyTimes()
+	repo.EXPECT().FindByID("AOnykssfh8k").Return("")
 
-	services := service.NewService(repo, config.ShortURLHost, config.StorageFile)
+	services := service.NewService(repo, config.ShortURLHost)
 
 	handlers := handler.NewHandler(services)
 	Router := handlers.InitRoutes()

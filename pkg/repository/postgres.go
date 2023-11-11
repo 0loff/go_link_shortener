@@ -7,10 +7,7 @@ import (
 )
 
 func NewPostgresDB(cfg string) (*sql.DB, error) {
-	db, err := sql.Open(
-		"pgx",
-		cfg,
-	)
+	db, err := sql.Open("pgx", cfg)
 
 	if err != nil {
 		return nil, err

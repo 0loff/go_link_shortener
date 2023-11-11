@@ -4,8 +4,8 @@ import (
 	"net/http"
 )
 
-func (h *Handler) PingDBConnect(w http.ResponseWriter, r *http.Request) {
-	err := h.services.Repo.PingDBConnect()
+func (h *Handler) PingConnect(w http.ResponseWriter, r *http.Request) {
+	err := h.services.Repo.PingConnect()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

@@ -34,12 +34,11 @@ func (m *MockURLKeeper) EXPECT() *MockURLKeeperMockRecorder {
 }
 
 // FindByID mocks base method.
-func (m *MockURLKeeper) FindByID(id string) (string, bool) {
+func (m *MockURLKeeper) FindByID(id string) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", id)
 	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
+	return ret0
 }
 
 // FindByID indicates an expected call of FindByID.
@@ -76,26 +75,24 @@ func (mr *MockURLKeeperMockRecorder) GetNumberOfEntries() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumberOfEntries", reflect.TypeOf((*MockURLKeeper)(nil).GetNumberOfEntries))
 }
 
-// PingDBConnect mocks base method.
-func (m *MockURLKeeper) PingDBConnect() error {
+// PingConnect mocks base method.
+func (m *MockURLKeeper) PingConnect() error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PingDBConnect")
+	ret := m.ctrl.Call(m, "PingConnect")
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// PingDBConnect indicates an expected call of PingDBConnect.
-func (mr *MockURLKeeperMockRecorder) PingDBConnect() *gomock.Call {
+// PingConnect indicates an expected call of PingConnect.
+func (mr *MockURLKeeperMockRecorder) PingConnect() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingDBConnect", reflect.TypeOf((*MockURLKeeper)(nil).PingDBConnect))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingConnect", reflect.TypeOf((*MockURLKeeper)(nil).PingConnect))
 }
 
 // SetShortURL mocks base method.
-func (m *MockURLKeeper) SetShortURL(encodedString, url string) string {
+func (m *MockURLKeeper) SetShortURL(encodedString, url string) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetShortURL", encodedString, url)
-	ret0, _ := ret[0].(string)
-	return ret0
+	m.ctrl.Call(m, "SetShortURL", encodedString, url)
 }
 
 // SetShortURL indicates an expected call of SetShortURL.

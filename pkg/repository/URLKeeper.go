@@ -1,9 +1,9 @@
 package repository
 
 type URLKeeper interface {
-	FindByID(id string) (string, bool)
+	FindByID(id string) string
 	FindByLink(link string) string
-	SetShortURL(encodedString string, url string) string
+	SetShortURL(encodedString string, url string)
 	GetNumberOfEntries() int
-	PingDBConnect() error
+	PingConnect() error
 }

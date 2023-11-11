@@ -59,10 +59,12 @@ func NewConfigBuilder() {
 	flag.StringVar(&logLevel, "l", "info", "log level")
 
 	var storageFile string
-	flag.StringVar(&storageFile, "f", "/tmp/short-url-db.json", "storage file full name")
+	flag.StringVar(&storageFile, "f", "", "storage file full name")
+	// flag.StringVar(&storageFile, "f", "/tmp/short-url-db.json", "storage file full name")
 
 	var databaseDSN string
-	flag.StringVar(&databaseDSN, "d", "host=localhost port=5432 user=videos password=secret dbname=videos sslmode=disable", "Database DSN config string")
+	flag.StringVar(&databaseDSN, "d", "", "Database DSN config string")
+	// flag.StringVar(&databaseDSN, "d", "host=localhost port=5432 user=postgres password=root dbname=urls sslmode=disable", "Database DSN config string")
 
 	flag.Parse()
 

@@ -9,8 +9,7 @@ const (
 	alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
-type Base62Encoder struct {
-}
+type Base62Encoder struct{}
 
 func NewBase62Encoder() *Base62Encoder {
 	return &Base62Encoder{}
