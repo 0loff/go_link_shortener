@@ -5,6 +5,7 @@
 package mock
 
 import (
+	models "go_link_shortener/internal/models"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -31,6 +32,20 @@ func NewMockURLKeeper(ctrl *gomock.Controller) *MockURLKeeper {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockURLKeeper) EXPECT() *MockURLKeeperMockRecorder {
 	return m.recorder
+}
+
+// BatchInsertShortURLS mocks base method.
+func (m *MockURLKeeper) BatchInsertShortURLS(entries []models.BatchInsertURLEntry) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchInsertShortURLS", entries)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchInsertShortURLS indicates an expected call of BatchInsertShortURLS.
+func (mr *MockURLKeeperMockRecorder) BatchInsertShortURLS(entries interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchInsertShortURLS", reflect.TypeOf((*MockURLKeeper)(nil).BatchInsertShortURLS), entries)
 }
 
 // FindByID mocks base method.

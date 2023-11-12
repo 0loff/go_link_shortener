@@ -3,6 +3,7 @@ package dbrepository
 import (
 	"context"
 	"database/sql"
+	"go_link_shortener/internal/models"
 	"go_link_shortener/pkg/repository"
 	"time"
 
@@ -74,6 +75,32 @@ func (dbrepo *DBRepository) SetShortURL(shortURL, origURL string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (dbrepo *DBRepository) BatchInsertShortURLS(urls []models.BatchInsertURLEntry) error {
+	ctx := context.Background()
+	tx, err := dbrepo.DB.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	defer tx.Rollback()
+
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO shorturls (short_url, origin_url) VALUES ($1, $2)")
+	if err != nil {
+		panic(err)
+	}
+
+	defer stmt.Close()
+
+	for _, u := range urls {
+		_, err := stmt.ExecContext(ctx, u.ShortURL, u.OriginalURL)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (dbrepo *DBRepository) GetNumberOfEntries() int {

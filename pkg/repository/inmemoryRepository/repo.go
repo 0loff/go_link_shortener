@@ -1,6 +1,7 @@
 package inmemoryrepository
 
 import (
+	"go_link_shortener/internal/models"
 	"sync"
 )
 
@@ -45,6 +46,13 @@ func (ur *InMemoryRepository) SetShortURL(shortURL string, origURL string) {
 	defer ur.lock.Unlock()
 
 	ur.URLEntries[shortURL] = origURL
+}
+
+func (ur *InMemoryRepository) BatchInsertShortURLS(urls []models.BatchInsertURLEntry) error {
+	for _, u := range urls {
+		ur.SetShortURL(u.ShortURL, u.OriginalURL)
+	}
+	return nil
 }
 
 func (ur *InMemoryRepository) GetNumberOfEntries() int {

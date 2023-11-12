@@ -222,6 +222,22 @@ func TestRequestHandler(t *testing.T) {
 			},
 		},
 		{
+			name:   "test POST batch insert request, JSON body",
+			method: http.MethodPost,
+			reqHeaders: RequestHeaders{
+				"Content-Type":    "application/json",
+				"Accept-Encoding": "deflate",
+			},
+			header: "Content-Type",
+			path:   "/api/shorten/batch",
+			body:   "[{\"correlation_id\":\"ouroypuery\",\"original_url\":\"https://practicum.yandex.ru/\"}]",
+			want: want{
+				expectedCode:   http.StatusCreated,
+				expectedHeader: "application/json",
+				expectedBody:   "[{\"correlation_id\":\"ouroypuery\",\"short_url\":\"http://localhost:8080/OL0ZGlVC3dq\"}]\n",
+			},
+		},
+		{
 			name:   "test POST request, JSON body, receive encoded response",
 			method: http.MethodPost,
 			reqHeaders: RequestHeaders{

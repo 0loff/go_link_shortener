@@ -2,6 +2,7 @@ package filerepository
 
 import (
 	filehandler "go_link_shortener/internal/fileHandler"
+	"go_link_shortener/internal/models"
 	"log"
 )
 
@@ -26,6 +27,7 @@ func (fr *FileRepository) FindByID(id string) string {
 
 	for {
 		entry, err := Consumer.ReadEntry()
+		// TODO err == io.EOF
 		if err != nil {
 			return ""
 		}
@@ -65,6 +67,18 @@ func (fr *FileRepository) SetShortURL(shortURL, originURL string) {
 	}
 
 	fr.WriteToFile(newEntry)
+}
+
+func (fr *FileRepository) BatchInsertShortURLS(urls []models.BatchInsertURLEntry) error {
+	for _, u := range urls {
+		fr.WriteToFile(filehandler.Entry{
+			ID:          fr.GetNumberOfEntries(),
+			ShortURL:    u.ShortURL,
+			OriginalURL: u.OriginalURL,
+		})
+	}
+
+	return nil
 }
 
 func (fr *FileRepository) WriteToFile(entry filehandler.Entry) {

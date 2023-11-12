@@ -85,7 +85,7 @@ func NewConfigBuilder() {
 	}
 
 	if envStorageFile := os.Getenv("DATABASE_DSN"); envStorageFile != "" {
-		storageFile = envStorageFile
+		databaseDSN = envStorageFile
 	}
 
 	config = new(ConfigBuilder).

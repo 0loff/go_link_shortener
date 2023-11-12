@@ -24,9 +24,10 @@ func (h *Handler) InitRoutes() chi.Router {
 		r.Use(compressor.GzipCompressor)
 		r.Use(logger.RequestLogger)
 
-		r.Post("/", http.HandlerFunc(h.CreateShortURL))
-		r.Post("/api/shorten", http.HandlerFunc(h.CreateShortURLjson))
 		r.Get("/{id}", http.HandlerFunc(h.GetShortURL))
 		r.Get("/ping", http.HandlerFunc(h.PingConnect))
+		r.Post("/", http.HandlerFunc(h.CreateShortURL))
+		r.Post("/api/shorten", http.HandlerFunc(h.CreateShortURLjson))
+		r.Post("/api/shorten/batch", http.HandlerFunc(h.BatchShortURLs))
 	})
 }
