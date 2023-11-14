@@ -1,12 +1,11 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
-	"fmt"
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/models"
 	"io"
-	"log"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -15,19 +14,23 @@ import (
 func (h *Handler) BatchShortURLs(w http.ResponseWriter, r *http.Request) {
 	entries := []models.BatchURLRequestEntry{}
 
+	ctx := context.Background()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		logger.Log.Error("Error parsing request body", zap.Error(err))
 		return
 	}
 
 	err = json.Unmarshal(body, &entries)
 	if err != nil {
-		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		logger.Log.Error("Error parsing JSON", zap.Error(err))
 		return
 	}
 
-	resp := h.services.SetBatchShortURLs(entries)
+	resp := h.services.SetBatchShortURLs(ctx, entries)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

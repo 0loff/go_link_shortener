@@ -40,9 +40,11 @@ func run() error {
 func makeRepository(cfg *Config) repository.URLKeeper {
 	if config.DatabaseDSN != "" {
 		return dbrepository.NewRepository(config.DatabaseDSN)
-	} else if config.StorageFile != "" {
-		return filerepository.NewRepository(config.StorageFile)
-	} else {
-		return inmemoryrepository.NewRepository()
 	}
+
+	if config.StorageFile != "" {
+		return filerepository.NewRepository(config.StorageFile)
+	}
+
+	return inmemoryrepository.NewRepository()
 }

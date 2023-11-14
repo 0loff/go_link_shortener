@@ -1,15 +1,19 @@
 package handler
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 func (h *Handler) GetShortURL(w http.ResponseWriter, r *http.Request) {
-	link := h.services.GetShortURL(r.URL.Path[1:])
+	ctx := context.Background()
+	link := h.services.GetShortURL(ctx, r.URL.Path[1:])
 
-	if link != "" {
-		w.Header().Set("Location", link)
-		w.WriteHeader(http.StatusTemporaryRedirect)
+	if link == "" {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
+	w.Header().Set("Location", link)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }

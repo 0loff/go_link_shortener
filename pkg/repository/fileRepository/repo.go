@@ -1,8 +1,10 @@
 package filerepository
 
 import (
+	"context"
 	filehandler "go_link_shortener/internal/fileHandler"
 	"go_link_shortener/internal/models"
+	"go_link_shortener/pkg/repository"
 	"log"
 )
 
@@ -16,7 +18,7 @@ func NewRepository(fileName string) *FileRepository {
 	}
 }
 
-func (fr *FileRepository) FindByID(id string) string {
+func (fr *FileRepository) FindByID(ctx context.Context, id string) string {
 
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
 	if err != nil {
@@ -39,7 +41,7 @@ func (fr *FileRepository) FindByID(id string) string {
 
 }
 
-func (fr *FileRepository) FindByLink(link string) string {
+func (fr *FileRepository) FindByLink(ctx context.Context, link string) string {
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
 	if err != nil {
 		log.Fatal(err)
@@ -59,20 +61,26 @@ func (fr *FileRepository) FindByLink(link string) string {
 	}
 }
 
-func (fr *FileRepository) SetShortURL(shortURL, originURL string) {
+func (fr *FileRepository) SetShortURL(ctx context.Context, shortURL, originURL string) (string, error) {
+
+	if fr.FindByLink(ctx, originURL) != "" {
+		return shortURL, repository.ErrConflict
+	}
+
 	newEntry := filehandler.Entry{
-		ID:          fr.GetNumberOfEntries(),
+		ID:          fr.GetNumberOfEntries(ctx),
 		ShortURL:    shortURL,
 		OriginalURL: originURL,
 	}
 
 	fr.WriteToFile(newEntry)
+	return shortURL, nil
 }
 
-func (fr *FileRepository) BatchInsertShortURLS(urls []models.BatchInsertURLEntry) error {
+func (fr *FileRepository) BatchInsertShortURLS(ctx context.Context, urls []models.BatchInsertURLEntry) error {
 	for _, u := range urls {
 		fr.WriteToFile(filehandler.Entry{
-			ID:          fr.GetNumberOfEntries(),
+			ID:          fr.GetNumberOfEntries(ctx),
 			ShortURL:    u.ShortURL,
 			OriginalURL: u.OriginalURL,
 		})
@@ -91,7 +99,7 @@ func (fr *FileRepository) WriteToFile(entry filehandler.Entry) {
 	Producer.WriteEntry(&entry)
 }
 
-func (fr *FileRepository) GetNumberOfEntries() int {
+func (fr *FileRepository) GetNumberOfEntries(ctx context.Context) int {
 	NumEntries := 0
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
 	if err != nil {
@@ -107,6 +115,6 @@ func (fr *FileRepository) GetNumberOfEntries() int {
 	}
 }
 
-func (fr *FileRepository) PingConnect() error {
+func (fr *FileRepository) PingConnect(ctx context.Context) error {
 	return nil
 }

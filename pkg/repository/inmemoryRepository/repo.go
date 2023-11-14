@@ -1,7 +1,9 @@
 package inmemoryrepository
 
 import (
+	"context"
 	"go_link_shortener/internal/models"
+	"go_link_shortener/pkg/repository"
 	"sync"
 )
 
@@ -17,7 +19,7 @@ func NewRepository() *InMemoryRepository {
 	}
 }
 
-func (ur *InMemoryRepository) FindByID(id string) string {
+func (ur *InMemoryRepository) FindByID(ctx context.Context, id string) string {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
 	entry, ok := ur.URLEntries[id]
@@ -28,7 +30,7 @@ func (ur *InMemoryRepository) FindByID(id string) string {
 	return entry
 }
 
-func (ur *InMemoryRepository) FindByLink(link string) string {
+func (ur *InMemoryRepository) FindByLink(ctx context.Context, link string) string {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
 
@@ -41,24 +43,31 @@ func (ur *InMemoryRepository) FindByLink(link string) string {
 	return ""
 }
 
-func (ur *InMemoryRepository) SetShortURL(shortURL string, origURL string) {
+func (ur *InMemoryRepository) SetShortURL(ctx context.Context, shortURL string, origURL string) (string, error) {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
 
+	for _, value := range ur.URLEntries {
+		if origURL == value {
+			return shortURL, repository.ErrConflict
+		}
+	}
+
 	ur.URLEntries[shortURL] = origURL
+	return shortURL, nil
 }
 
-func (ur *InMemoryRepository) BatchInsertShortURLS(urls []models.BatchInsertURLEntry) error {
+func (ur *InMemoryRepository) BatchInsertShortURLS(ctx context.Context, urls []models.BatchInsertURLEntry) error {
 	for _, u := range urls {
-		ur.SetShortURL(u.ShortURL, u.OriginalURL)
+		ur.SetShortURL(ctx, u.ShortURL, u.OriginalURL)
 	}
 	return nil
 }
 
-func (ur *InMemoryRepository) GetNumberOfEntries() int {
+func (ur *InMemoryRepository) GetNumberOfEntries(ctx context.Context) int {
 	return len(ur.URLEntries)
 }
 
-func (ur *InMemoryRepository) PingConnect() error {
+func (ur *InMemoryRepository) PingConnect(ctx context.Context) error {
 	return nil
 }

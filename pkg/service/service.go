@@ -1,9 +1,14 @@
 package service
 
 import (
+	"context"
+	"errors"
+	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/models"
 	"go_link_shortener/pkg/base62"
 	"go_link_shortener/pkg/repository"
+
+	"go.uber.org/zap"
 )
 
 type Service struct {
@@ -19,18 +24,24 @@ func NewService(Repo repository.URLKeeper, shortURLHost string) *Service {
 	}
 }
 
-func (s *Service) SetShortURL(url string) string {
-	shortURL := base62.NewBase62Encoder().EncodeString()
-	s.Repo.SetShortURL(shortURL, url)
-	return shortURL
+func (s *Service) CreateShortURL(ctx context.Context, url string) (string, error) {
+	token := base62.NewBase62Encoder().EncodeString()
+
+	shortURL, err := s.Repo.SetShortURL(ctx, token, url)
+	if err != nil && errors.Is(err, repository.ErrConflict) {
+		shortURL = s.Repo.FindByLink(ctx, url)
+		logger.Log.Error("Error when inserting short URL into database", zap.Error(err))
+	}
+
+	return shortURL, err
 }
 
-func (s *Service) SetBatchShortURLs(entries []models.BatchURLRequestEntry) []models.BatchURLResponseEntry {
+func (s *Service) SetBatchShortURLs(ctx context.Context, entries []models.BatchURLRequestEntry) []models.BatchURLResponseEntry {
 	batchEntries := []models.BatchInsertURLEntry{}
 	respEntries := []models.BatchURLResponseEntry{}
 
 	for _, u := range entries {
-		shortURL := s.Repo.FindByLink(u.OriginalURL)
+		shortURL := s.Repo.FindByLink(ctx, u.OriginalURL)
 
 		if shortURL == "" {
 			shortURL = base62.NewBase62Encoder().EncodeString()
@@ -48,27 +59,20 @@ func (s *Service) SetBatchShortURLs(entries []models.BatchURLRequestEntry) []mod
 		respEntries = append(respEntries, newResponseEntry)
 	}
 	if len(batchEntries) != 0 {
-		s.Repo.BatchInsertShortURLS(batchEntries)
+		err := s.Repo.BatchInsertShortURLS(ctx, batchEntries)
+		if err != nil {
+			logger.Log.Error("BatchInsert failed", zap.Error(err))
+		}
 	}
 	return respEntries
 }
 
-func (s *Service) GetShortURL(shortURL string) string {
-	link := s.Repo.FindByID(shortURL)
+func (s *Service) GetShortURL(ctx context.Context, shortURL string) string {
+	link := s.Repo.FindByID(ctx, shortURL)
 
 	if link != "" {
 		return link
 	}
 
 	return ""
-}
-
-func (s *Service) ShortURLResolver(url string) string {
-	shortURL := s.Repo.FindByLink(url)
-
-	if shortURL != "" {
-		return shortURL
-	}
-
-	return s.SetShortURL(url)
 }

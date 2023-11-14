@@ -19,6 +19,6 @@ type BatchURLResponseEntry struct {
 }
 
 type BatchInsertURLEntry struct {
-	ShortURL    string
-	OriginalURL string
+	ShortURL    string `db:"short_url"`
+	OriginalURL string `db:"origin_url"`
 }
