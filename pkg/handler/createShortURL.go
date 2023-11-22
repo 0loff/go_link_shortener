@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"context"
 	"go_link_shortener/internal/logger"
+	"go_link_shortener/internal/utils"
 	"io"
 	"net/http"
 	"strings"
@@ -11,7 +11,12 @@ import (
 )
 
 func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
+	UserID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		logger.Log.Error("Cannot get UserID from context")
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -25,7 +30,7 @@ func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusHeader := http.StatusCreated
-	shortURL, err := h.services.CreateShortURL(ctx, string(body))
+	shortURL, err := h.services.CreateShortURL(ctx, UserID, string(body))
 	if err != nil {
 		statusHeader = http.StatusConflict
 

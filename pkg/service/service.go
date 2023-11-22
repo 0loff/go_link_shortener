@@ -24,10 +24,10 @@ func NewService(Repo repository.URLKeeper, shortURLHost string) *Service {
 	}
 }
 
-func (s *Service) CreateShortURL(ctx context.Context, url string) (string, error) {
+func (s *Service) CreateShortURL(ctx context.Context, uid, url string) (string, error) {
 	token := base62.NewBase62Encoder().EncodeString()
 
-	shortURL, err := s.Repo.SetShortURL(ctx, token, url)
+	shortURL, err := s.Repo.SetShortURL(ctx, uid, token, url)
 	if err != nil && errors.Is(err, repository.ErrConflict) {
 		shortURL = s.Repo.FindByLink(ctx, url)
 		logger.Log.Error("Error when inserting short URL into database", zap.Error(err))
@@ -36,8 +36,8 @@ func (s *Service) CreateShortURL(ctx context.Context, url string) (string, error
 	return shortURL, err
 }
 
-func (s *Service) SetBatchShortURLs(ctx context.Context, entries []models.BatchURLRequestEntry) []models.BatchURLResponseEntry {
-	batchEntries := []models.BatchInsertURLEntry{}
+func (s *Service) SetBatchShortURLs(ctx context.Context, uid string, entries []models.BatchURLRequestEntry) []models.BatchURLResponseEntry {
+	batchEntries := []models.URLEntry{}
 	respEntries := []models.BatchURLResponseEntry{}
 
 	for _, u := range entries {
@@ -45,34 +45,43 @@ func (s *Service) SetBatchShortURLs(ctx context.Context, entries []models.BatchU
 
 		if shortURL == "" {
 			shortURL = base62.NewBase62Encoder().EncodeString()
-			newInsertEntry := models.BatchInsertURLEntry{
+
+			batchEntries = append(batchEntries, models.URLEntry{
 				ShortURL:    shortURL,
 				OriginalURL: u.OriginalURL,
-			}
-			batchEntries = append(batchEntries, newInsertEntry)
+			})
 		}
 
-		newResponseEntry := models.BatchURLResponseEntry{
+		respEntries = append(respEntries, models.BatchURLResponseEntry{
 			CorrelationID: u.CorrelationID,
 			ShortURL:      s.ShortURLHost + "/" + shortURL,
-		}
-		respEntries = append(respEntries, newResponseEntry)
+		})
 	}
+
 	if len(batchEntries) != 0 {
-		err := s.Repo.BatchInsertShortURLS(ctx, batchEntries)
+		err := s.Repo.BatchInsertShortURLS(ctx, uid, batchEntries)
 		if err != nil {
 			logger.Log.Error("BatchInsert failed", zap.Error(err))
 		}
 	}
+
 	return respEntries
 }
 
 func (s *Service) GetShortURL(ctx context.Context, shortURL string) string {
-	link := s.Repo.FindByID(ctx, shortURL)
+	return s.Repo.FindByID(ctx, shortURL)
+}
 
-	if link != "" {
-		return link
+func (s *Service) GetShortURLs(ctx context.Context, uid string) []models.URLEntry {
+	var UserURLs []models.URLEntry
+
+	userURLs := s.Repo.FindByUser(ctx, uid)
+	for _, u := range userURLs {
+		UserURLs = append(UserURLs, models.URLEntry{
+			ShortURL:    s.ShortURLHost + "/" + u.ShortURL,
+			OriginalURL: u.OriginalURL,
+		})
 	}
 
-	return ""
+	return UserURLs
 }

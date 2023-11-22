@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/models"
+	"go_link_shortener/internal/utils"
 	"net/http"
 	"strings"
 
@@ -14,7 +14,11 @@ import (
 func (h *Handler) CreateShortURLjson(w http.ResponseWriter, r *http.Request) {
 	var origURL models.CreateURLRequestPayload
 
-	ctx := context.Background()
+	ctx := r.Context()
+	UserID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		logger.Log.Error("Cannot get UserID from context")
+	}
 
 	dec := json.NewDecoder(r.Body)
 
@@ -30,7 +34,7 @@ func (h *Handler) CreateShortURLjson(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statusHeader := http.StatusCreated
-	shortURL, err := h.services.CreateShortURL(ctx, origURL.URL)
+	shortURL, err := h.services.CreateShortURL(ctx, UserID, origURL.URL)
 	if err != nil {
 		statusHeader = http.StatusConflict
 
