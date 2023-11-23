@@ -8,6 +8,7 @@ import (
 type (
 	Entry struct {
 		ID          int    `json:"uuid"`
+		UserID      string `json:"user_id"`
 		ShortURL    string `json:"short_url"`
 		OriginalURL string `json:"origin_url"`
 	}

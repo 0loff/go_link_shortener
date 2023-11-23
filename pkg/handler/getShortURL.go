@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 )
 
 func (h *Handler) GetShortURL(w http.ResponseWriter, r *http.Request) {
-	ctx := context.Background()
+	ctx := r.Context()
+
 	link := h.services.GetShortURL(ctx, r.URL.Path[1:])
 
 	if link == "" {

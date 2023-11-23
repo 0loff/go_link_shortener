@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/models"
+	"go_link_shortener/internal/utils"
 	"io"
 	"net/http"
 
@@ -14,7 +14,11 @@ import (
 func (h *Handler) BatchShortURLs(w http.ResponseWriter, r *http.Request) {
 	entries := []models.BatchURLRequestEntry{}
 
-	ctx := context.Background()
+	ctx := r.Context()
+	UserID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		logger.Log.Error("Cannot get UserID from context")
+	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -30,7 +34,7 @@ func (h *Handler) BatchShortURLs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := h.services.SetBatchShortURLs(ctx, entries)
+	resp := h.services.SetBatchShortURLs(ctx, UserID, entries)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

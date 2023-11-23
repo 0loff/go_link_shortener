@@ -40,7 +40,7 @@ func NewRepository(DSNCfg string) *DBRepository {
 }
 
 func (dbrepo *DBRepository) CreateTable() {
-	_, err := dbrepo.DB.Exec("CREATE TABLE IF NOT EXISTS shorturls (id serial PRIMARY KEY, short_url TEXT NOT NULL, origin_url TEXT NOT NULL)")
+	_, err := dbrepo.DB.Exec("CREATE TABLE IF NOT EXISTS shorturls (id serial PRIMARY KEY, user_id TEXT NOT NULL, short_url TEXT NOT NULL, origin_url TEXT NOT NULL)")
 	if err != nil {
 		panic(err)
 	}
@@ -78,8 +78,35 @@ func (dbrepo *DBRepository) FindByLink(ctx context.Context, link string) string 
 	return shortURL
 }
 
-func (dbrepo *DBRepository) SetShortURL(ctx context.Context, shortURL, origURL string) (string, error) {
-	_, err := dbrepo.DB.Exec("INSERT INTO shorturls (short_url, origin_url) VALUES ($1, $2)", shortURL, origURL)
+func (dbrepo *DBRepository) FindByUser(ctx context.Context, uid string) []models.URLEntry {
+	var URLEntries []models.URLEntry
+
+	rows, err := dbrepo.DB.Query("SELECT short_url, origin_url FROM shorturls WHERE user_id = $1", uid)
+	if err != nil {
+		logger.Log.Error("Unrecognized data from the database \n", zap.Error(err))
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var Entry models.URLEntry
+		if err := rows.Scan(&Entry.ShortURL, &Entry.OriginalURL); err != nil {
+			logger.Log.Error("Unable to parse the received value", zap.Error(err))
+			continue
+		}
+
+		URLEntries = append(URLEntries, Entry)
+	}
+
+	if err = rows.Err(); err != nil {
+		return URLEntries
+	}
+
+	return URLEntries
+}
+
+func (dbrepo *DBRepository) SetShortURL(ctx context.Context, userID, shortURL, origURL string) (string, error) {
+	_, err := dbrepo.DB.Exec("INSERT INTO shorturls (user_id, short_url, origin_url) VALUES ($1, $2, $3)", userID, shortURL, origURL)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
@@ -89,19 +116,20 @@ func (dbrepo *DBRepository) SetShortURL(ctx context.Context, shortURL, origURL s
 	return shortURL, err
 }
 
-func (dbrepo *DBRepository) BatchInsertShortURLS(ctx context.Context, urls []models.BatchInsertURLEntry) error {
+func (dbrepo *DBRepository) BatchInsertShortURLS(ctx context.Context, uid string, urls []models.URLEntry) error {
 	var (
 		placeholders []string
 		newUrls      []interface{}
 	)
 
 	for index, url := range urls {
-		placeholders = append(placeholders, fmt.Sprintf("($%d,$%d)",
-			index*2+1,
-			index*2+2,
+		placeholders = append(placeholders, fmt.Sprintf("($%d,$%d,$%d)",
+			index*3+1,
+			index*3+2,
+			index*3+3,
 		))
 
-		newUrls = append(newUrls, url.ShortURL, url.OriginalURL)
+		newUrls = append(newUrls, uid, url.ShortURL, url.OriginalURL)
 	}
 
 	tx, err := dbrepo.DB.Begin()
@@ -109,7 +137,7 @@ func (dbrepo *DBRepository) BatchInsertShortURLS(ctx context.Context, urls []mod
 		logger.Log.Error("Failed to start transaction", zap.Error(err))
 	}
 
-	insertStatement := fmt.Sprintf("INSERT INTO shorturls (short_url, origin_url) VALUES %s", strings.Join(placeholders, ","))
+	insertStatement := fmt.Sprintf("INSERT INTO shorturls (user_id, short_url, origin_url) VALUES %s", strings.Join(placeholders, ","))
 	_, err = tx.ExecContext(ctx, insertStatement, newUrls...)
 	if err != nil {
 		tx.Rollback()

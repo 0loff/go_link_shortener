@@ -61,7 +61,31 @@ func (fr *FileRepository) FindByLink(ctx context.Context, link string) string {
 	}
 }
 
-func (fr *FileRepository) SetShortURL(ctx context.Context, shortURL, originURL string) (string, error) {
+func (fr *FileRepository) FindByUser(ctx context.Context, uid string) []models.URLEntry {
+	var URLEntries []models.URLEntry
+
+	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer Consumer.Close()
+
+	for {
+		entry, err := Consumer.ReadEntry()
+		if err != nil {
+			return URLEntries
+		}
+
+		if entry.UserID == uid {
+			URLEntries = append(URLEntries, models.URLEntry{
+				ShortURL:    entry.ShortURL,
+				OriginalURL: entry.OriginalURL,
+			})
+		}
+	}
+}
+
+func (fr *FileRepository) SetShortURL(ctx context.Context, uid, shortURL, originURL string) (string, error) {
 
 	if fr.FindByLink(ctx, originURL) != "" {
 		return shortURL, repository.ErrConflict
@@ -69,6 +93,7 @@ func (fr *FileRepository) SetShortURL(ctx context.Context, shortURL, originURL s
 
 	newEntry := filehandler.Entry{
 		ID:          fr.GetNumberOfEntries(ctx),
+		UserID:      uid,
 		ShortURL:    shortURL,
 		OriginalURL: originURL,
 	}
@@ -77,10 +102,11 @@ func (fr *FileRepository) SetShortURL(ctx context.Context, shortURL, originURL s
 	return shortURL, nil
 }
 
-func (fr *FileRepository) BatchInsertShortURLS(ctx context.Context, urls []models.BatchInsertURLEntry) error {
+func (fr *FileRepository) BatchInsertShortURLS(ctx context.Context, uid string, urls []models.URLEntry) error {
 	for _, u := range urls {
 		fr.WriteToFile(filehandler.Entry{
 			ID:          fr.GetNumberOfEntries(ctx),
+			UserID:      uid,
 			ShortURL:    u.ShortURL,
 			OriginalURL: u.OriginalURL,
 		})
