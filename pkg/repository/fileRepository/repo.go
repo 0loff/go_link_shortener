@@ -18,7 +18,7 @@ func NewRepository(fileName string) *FileRepository {
 	}
 }
 
-func (fr *FileRepository) FindByID(ctx context.Context, id string) string {
+func (fr *FileRepository) FindByID(ctx context.Context, id string) (string, error) {
 
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
 	if err != nil {
@@ -29,16 +29,18 @@ func (fr *FileRepository) FindByID(ctx context.Context, id string) string {
 
 	for {
 		entry, err := Consumer.ReadEntry()
-		// TODO err == io.EOF
 		if err != nil {
-			return ""
+			return "", repository.ErrURLNotFound
 		}
 
 		if entry.ShortURL == id {
-			return entry.OriginalURL
+			if entry.IsDeleted {
+				return "", repository.ErrURLGone
+			}
+
+			return entry.OriginalURL, nil
 		}
 	}
-
 }
 
 func (fr *FileRepository) FindByLink(ctx context.Context, link string) string {
@@ -76,7 +78,7 @@ func (fr *FileRepository) FindByUser(ctx context.Context, uid string) []models.U
 			return URLEntries
 		}
 
-		if entry.UserID == uid {
+		if entry.UserID == uid && !entry.IsDeleted {
 			URLEntries = append(URLEntries, models.URLEntry{
 				ShortURL:    entry.ShortURL,
 				OriginalURL: entry.OriginalURL,
@@ -110,6 +112,52 @@ func (fr *FileRepository) BatchInsertShortURLS(ctx context.Context, uid string, 
 			ShortURL:    u.ShortURL,
 			OriginalURL: u.OriginalURL,
 		})
+	}
+
+	return nil
+}
+
+func (fr *FileRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) error {
+	var URLEntries []filehandler.Entry
+
+	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		entry, err := Consumer.ReadEntry()
+		if err != nil {
+			break
+		}
+
+		for _, URLForDel := range ShortURLsList {
+			if entry.ShortURL == URLForDel.ShortURL && entry.UserID == URLForDel.UserID {
+				entry.IsDeleted = true
+			}
+		}
+
+		URLEntries = append(URLEntries, filehandler.Entry{
+			ID:          entry.ID,
+			UserID:      entry.UserID,
+			ShortURL:    entry.ShortURL,
+			OriginalURL: entry.OriginalURL,
+			IsDeleted:   entry.IsDeleted,
+		})
+	}
+
+	Consumer.Close()
+
+	Producer, err := filehandler.NewProducer(fr.StorageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer Producer.Close()
+
+	Producer.Trunc()
+
+	for _, URLEntry := range URLEntries {
+		Producer.WriteEntry(&URLEntry)
 	}
 
 	return nil

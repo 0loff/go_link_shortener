@@ -50,11 +50,12 @@ func (mr *MockURLKeeperMockRecorder) BatchInsertShortURLS(ctx, uid, entries inte
 }
 
 // FindByID mocks base method.
-func (m *MockURLKeeper) FindByID(ctx context.Context, id string) string {
+func (m *MockURLKeeper) FindByID(ctx context.Context, id string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByID", ctx, id)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // FindByID indicates an expected call of FindByID.
@@ -117,6 +118,20 @@ func (m *MockURLKeeper) PingConnect(ctx context.Context) error {
 func (mr *MockURLKeeperMockRecorder) PingConnect(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PingConnect", reflect.TypeOf((*MockURLKeeper)(nil).PingConnect), ctx)
+}
+
+// SetDelShortURLS mocks base method.
+func (m *MockURLKeeper) SetDelShortURLS(URLSList []models.DelURLEntry) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetDelShortURLS", URLSList)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetDelShortURLS indicates an expected call of SetDelShortURLS.
+func (mr *MockURLKeeperMockRecorder) SetDelShortURLS(URLSList interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDelShortURLS", reflect.TypeOf((*MockURLKeeper)(nil).SetDelShortURLS), URLSList)
 }
 
 // SetShortURL mocks base method.

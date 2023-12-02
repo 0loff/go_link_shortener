@@ -33,5 +33,7 @@ func (h *Handler) InitRoutes() chi.Router {
 		r.Post("/", http.HandlerFunc(h.CreateShortURL))
 		r.Post("/api/shorten", http.HandlerFunc(h.CreateShortURLjson))
 		r.Post("/api/shorten/batch", http.HandlerFunc(h.BatchShortURLs))
+
+		r.Delete("/api/user/urls", http.HandlerFunc(h.DeleteShortURLs))
 	})
 }

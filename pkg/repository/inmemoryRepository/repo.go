@@ -11,6 +11,7 @@ type InmemoryEntry struct {
 	UserID      string
 	ShortURL    string
 	OriginalURL string
+	IsDeleted   bool
 }
 
 type InMemoryRepository struct {
@@ -25,17 +26,21 @@ func NewRepository() *InMemoryRepository {
 	}
 }
 
-func (ur *InMemoryRepository) FindByID(ctx context.Context, id string) string {
+func (ur *InMemoryRepository) FindByID(ctx context.Context, id string) (string, error) {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
 
 	for _, entry := range ur.URLEntries {
 		if entry.ShortURL == id {
-			return entry.OriginalURL
+			if entry.IsDeleted {
+				return "", repository.ErrURLGone
+			}
+
+			return entry.OriginalURL, nil
 		}
 	}
 
-	return ""
+	return "", repository.ErrURLNotFound
 }
 
 func (ur *InMemoryRepository) FindByLink(ctx context.Context, link string) string {
@@ -58,7 +63,7 @@ func (ur *InMemoryRepository) FindByUser(ctx context.Context, uid string) []mode
 	var URLEntries []models.URLEntry
 
 	for _, entry := range ur.URLEntries {
-		if entry.UserID == uid {
+		if entry.UserID == uid && !entry.IsDeleted {
 			URLEntries = append(URLEntries, models.URLEntry{
 				ShortURL:    entry.ShortURL,
 				OriginalURL: entry.OriginalURL,
@@ -89,10 +94,25 @@ func (ur *InMemoryRepository) SetShortURL(ctx context.Context, uid, shortURL, or
 }
 
 func (ur *InMemoryRepository) BatchInsertShortURLS(ctx context.Context, uid string, urls []models.URLEntry) error {
-
 	for _, u := range urls {
 		ur.SetShortURL(ctx, uid, u.ShortURL, u.OriginalURL)
 	}
+	return nil
+}
+
+func (ur *InMemoryRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) error {
+	var UpdatedEntries []InmemoryEntry
+	for _, entry := range ur.URLEntries {
+		for _, URLForDel := range ShortURLsList {
+			if entry.ShortURL == URLForDel.ShortURL && entry.UserID == URLForDel.UserID {
+				entry.IsDeleted = true
+			}
+		}
+
+		UpdatedEntries = append(UpdatedEntries, entry)
+	}
+
+	ur.URLEntries = UpdatedEntries
 	return nil
 }
 

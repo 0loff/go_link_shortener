@@ -21,4 +21,10 @@ type BatchURLResponseEntry struct {
 type URLEntry struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+	IsDeleted   bool   `json:"-"`
+}
+
+type DelURLEntry struct {
+	UserID   string `db:"user_id"`
+	ShortURL string `db:"short_url"`
 }

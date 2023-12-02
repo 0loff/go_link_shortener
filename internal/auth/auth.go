@@ -14,6 +14,7 @@ import (
 func UserAuth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		AuthCookie, err := r.Cookie("Auth")
+
 		if err != nil {
 			switch {
 			case errors.Is(err, http.ErrNoCookie):
@@ -22,7 +23,10 @@ func UserAuth(h http.Handler) http.Handler {
 				AuthCookie = &http.Cookie{
 					Name:  "Auth",
 					Value: setAuthToken(),
+					Path:  "/",
 				}
+
+				http.SetCookie(w, AuthCookie)
 
 			default:
 				logger.Log.Error("Internal server error. Can't get auth cookie from request.", zap.Error(err))
@@ -36,7 +40,6 @@ func UserAuth(h http.Handler) http.Handler {
 
 		r = r.WithContext(context.WithValue(r.Context(), utils.ContextKeyUserID, UserID))
 
-		http.SetCookie(w, AuthCookie)
 		h.ServeHTTP(w, r)
 	})
 }

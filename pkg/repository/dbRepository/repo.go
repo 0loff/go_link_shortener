@@ -13,15 +13,17 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 type DBRepository struct {
-	DB *sql.DB
+	DB     *sql.DB
+	DSNcfg string
 }
 
-func NewRepository(DSNCfg string) *DBRepository {
-	conn, err := pgx.ParseConfig(DSNCfg)
+func NewRepository(DSNstring string) *DBRepository {
+	conn, err := pgx.ParseConfig(DSNstring)
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +34,8 @@ func NewRepository(DSNCfg string) *DBRepository {
 	}
 
 	DBRepo := &DBRepository{
-		DB: db,
+		DB:     db,
+		DSNcfg: DSNstring,
 	}
 
 	DBRepo.CreateTable()
@@ -40,7 +43,7 @@ func NewRepository(DSNCfg string) *DBRepository {
 }
 
 func (dbrepo *DBRepository) CreateTable() {
-	_, err := dbrepo.DB.Exec("CREATE TABLE IF NOT EXISTS shorturls (id serial PRIMARY KEY, user_id TEXT NOT NULL, short_url TEXT NOT NULL, origin_url TEXT NOT NULL)")
+	_, err := dbrepo.DB.Exec("CREATE TABLE IF NOT EXISTS shorturls (id serial PRIMARY KEY, user_id TEXT NOT NULL, short_url TEXT NOT NULL, origin_url TEXT NOT NULL, is_deleted BOOL DEFAULT false)")
 	if err != nil {
 		panic(err)
 	}
@@ -51,18 +54,34 @@ func (dbrepo *DBRepository) CreateTable() {
 	}
 }
 
-func (dbrepo *DBRepository) FindByID(ctx context.Context, encodedURL string) string {
-
-	row := dbrepo.DB.QueryRowContext(ctx, "SELECT origin_url FROM shorturls WHERE short_url = $1", encodedURL)
-
-	var originURL string
-	err := row.Scan(&originURL)
+func (dbrepo *DBRepository) FindByID(ctx context.Context, encodedURL string) (string, error) {
+	var Entry models.URLEntry
+	rows, err := dbrepo.DB.QueryContext(ctx, "SELECT short_url, origin_url, is_deleted FROM shorturls WHERE short_url = $1", encodedURL)
 	if err != nil {
-		logger.Log.Error("Unrecognized data from the database", zap.Error(err))
-		return ""
+		logger.Log.Error("Request execution error", zap.Error(err))
 	}
 
-	return originURL
+	if err = rows.Err(); err != nil {
+		logger.Log.Error("Request execution error", zap.Error(err))
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&Entry.ShortURL, &Entry.OriginalURL, &Entry.IsDeleted)
+		if err != nil {
+			logger.Log.Error("Unrecognized data from the database", zap.Error(err))
+			return "", err
+		}
+	}
+
+	if Entry.OriginalURL == "" {
+		return "", repository.ErrURLNotFound
+	}
+
+	if Entry.IsDeleted {
+		return "", repository.ErrURLGone
+	}
+
+	return Entry.OriginalURL, nil
 }
 
 func (dbrepo *DBRepository) FindByLink(ctx context.Context, link string) string {
@@ -81,7 +100,7 @@ func (dbrepo *DBRepository) FindByLink(ctx context.Context, link string) string 
 func (dbrepo *DBRepository) FindByUser(ctx context.Context, uid string) []models.URLEntry {
 	var URLEntries []models.URLEntry
 
-	rows, err := dbrepo.DB.Query("SELECT short_url, origin_url FROM shorturls WHERE user_id = $1", uid)
+	rows, err := dbrepo.DB.Query("SELECT short_url, origin_url, is_deleted FROM shorturls WHERE user_id = $1", uid)
 	if err != nil {
 		logger.Log.Error("Unrecognized data from the database \n", zap.Error(err))
 	}
@@ -90,7 +109,7 @@ func (dbrepo *DBRepository) FindByUser(ctx context.Context, uid string) []models
 
 	for rows.Next() {
 		var Entry models.URLEntry
-		if err := rows.Scan(&Entry.ShortURL, &Entry.OriginalURL); err != nil {
+		if err := rows.Scan(&Entry.ShortURL, &Entry.OriginalURL, &Entry.IsDeleted); err != nil {
 			logger.Log.Error("Unable to parse the received value", zap.Error(err))
 			continue
 		}
@@ -149,6 +168,39 @@ func (dbrepo *DBRepository) BatchInsertShortURLS(ctx context.Context, uid string
 	}
 
 	return nil
+}
+
+func (dbrepo *DBRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) error {
+	ctx := context.Background()
+
+	dbpool, err := pgxpool.New(ctx, dbrepo.DSNcfg)
+	if err != nil {
+		logger.Log.Error("Failed to run pgxpool connection", zap.Error(err))
+	}
+	defer dbpool.Close()
+
+	tx, err := dbpool.Begin(ctx)
+	if err != nil {
+		logger.Log.Error("Failed to start transaction", zap.Error(err))
+	}
+
+	b := &pgx.Batch{}
+
+	updateStatement := `UPDATE shorturls SET is_deleted = true WHERE user_id = $1 AND short_url = $2;`
+
+	for _, URLEntry := range ShortURLsList {
+		b.Queue(updateStatement, URLEntry.UserID, URLEntry.ShortURL)
+	}
+
+	results := tx.SendBatch(ctx, b)
+	_, err = results.Exec()
+	if err != nil {
+		results.Close()
+		logger.Log.Error("Failed to update entries", zap.Error(err))
+	}
+
+	results.Close()
+	return tx.Commit(ctx)
 }
 
 func (dbrepo *DBRepository) GetNumberOfEntries(ctx context.Context) int {

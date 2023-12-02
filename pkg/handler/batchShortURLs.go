@@ -5,7 +5,6 @@ import (
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/internal/models"
 	"go_link_shortener/internal/utils"
-	"io"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -20,17 +19,10 @@ func (h *Handler) BatchShortURLs(w http.ResponseWriter, r *http.Request) {
 		logger.Log.Error("Cannot get UserID from context")
 	}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&entries); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		logger.Log.Error("Error parsing request body", zap.Error(err))
-		return
-	}
-
-	err = json.Unmarshal(body, &entries)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		logger.Log.Error("Error parsing JSON", zap.Error(err))
+		logger.Log.Error("Error json decode request body", zap.Error(err))
 		return
 	}
 

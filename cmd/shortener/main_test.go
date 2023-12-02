@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/pkg/handler"
+	"go_link_shortener/pkg/repository"
 	"go_link_shortener/pkg/repository/mock"
 	"go_link_shortener/pkg/service"
 	"io"
@@ -96,8 +97,8 @@ func TestRequestHandler(t *testing.T) {
 	repo := mock.NewMockURLKeeper(ctrl) // repo := repository.NewRepository(db)
 
 	repo.EXPECT().FindByLink(gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq").AnyTimes()
-	repo.EXPECT().FindByID(gomock.Any(), "OL0ZGlVC3dq").Return("https://practicum.yandex.ru/").AnyTimes()
-	repo.EXPECT().FindByID(gomock.Any(), "AOnykssfh8k").Return("")
+	repo.EXPECT().FindByID(gomock.Any(), "OL0ZGlVC3dq").Return("https://practicum.yandex.ru/", nil).AnyTimes()
+	repo.EXPECT().FindByID(gomock.Any(), "AOnykssfh8k").Return("", repository.ErrURLNotFound)
 	repo.EXPECT().SetShortURL(gomock.Any(), gomock.Any(), gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq", nil).AnyTimes()
 
 	services := service.NewService(repo, config.ShortURLHost)
