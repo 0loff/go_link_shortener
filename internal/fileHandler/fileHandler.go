@@ -2,14 +2,17 @@ package filehandler
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 )
 
 type (
 	Entry struct {
 		ID          int    `json:"uuid"`
+		UserID      string `json:"user_id"`
 		ShortURL    string `json:"short_url"`
 		OriginalURL string `json:"origin_url"`
+		IsDeleted   bool   `json:"id_deleted"`
 	}
 
 	Producer struct {
@@ -37,6 +40,11 @@ func NewProducer(filename string) (*Producer, error) {
 
 func (p *Producer) WriteEntry(entry *Entry) error {
 	return p.encoder.Encode(entry)
+}
+
+func (p *Producer) Trunc() {
+	p.file.Seek(0, io.SeekStart)
+	p.file.Truncate(0)
 }
 
 func (p *Producer) Close() error {

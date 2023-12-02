@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/pkg/handler"
+	"go_link_shortener/pkg/repository"
 	"go_link_shortener/pkg/repository/mock"
 	"go_link_shortener/pkg/service"
 	"io"
@@ -92,16 +92,14 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, requestHeader
 func TestRequestHandler(t *testing.T) {
 	NewConfigBuilder()
 
-	ctx := context.Background()
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	repo := mock.NewMockURLKeeper(ctrl) // repo := repository.NewRepository(db)
 
-	repo.EXPECT().FindByLink(ctx, "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq").AnyTimes()
-	repo.EXPECT().FindByID(ctx, "OL0ZGlVC3dq").Return("https://practicum.yandex.ru/").AnyTimes()
-	repo.EXPECT().FindByID(ctx, "AOnykssfh8k").Return("")
-	repo.EXPECT().SetShortURL(ctx, gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq", nil).AnyTimes()
+	repo.EXPECT().FindByLink(gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq").AnyTimes()
+	repo.EXPECT().FindByID(gomock.Any(), "OL0ZGlVC3dq").Return("https://practicum.yandex.ru/", nil).AnyTimes()
+	repo.EXPECT().FindByID(gomock.Any(), "AOnykssfh8k").Return("", repository.ErrURLNotFound)
+	repo.EXPECT().SetShortURL(gomock.Any(), gomock.Any(), gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq", nil).AnyTimes()
 
 	services := service.NewService(repo, config.ShortURLHost)
 

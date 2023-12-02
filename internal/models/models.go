@@ -18,7 +18,13 @@ type BatchURLResponseEntry struct {
 	ShortURL      string `json:"short_url"`
 }
 
-type BatchInsertURLEntry struct {
-	ShortURL    string `db:"short_url"`
-	OriginalURL string `db:"origin_url"`
+type URLEntry struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+	IsDeleted   bool   `json:"-"`
+}
+
+type DelURLEntry struct {
+	UserID   string `db:"user_id"`
+	ShortURL string `db:"short_url"`
 }
