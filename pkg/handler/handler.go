@@ -6,6 +6,7 @@ import (
 	"go_link_shortener/internal/logger"
 	"go_link_shortener/pkg/service"
 	"net/http"
+	"net/http/pprof"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -22,18 +23,27 @@ func (h *Handler) InitRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	return r.Route("/", func(r chi.Router) {
-		r.Use(compressor.GzipCompressor)
-		r.Use(logger.RequestLogger)
-		r.Use(auth.UserAuth)
+		r.Group(func(router chi.Router) {
+			router.Use(compressor.GzipCompressor)
+			router.Use(logger.RequestLogger)
+			router.Use(auth.UserAuth)
 
-		r.Get("/{id}", http.HandlerFunc(h.GetShortURL))
-		r.Get("/ping", http.HandlerFunc(h.PingConnect))
-		r.Get("/api/user/urls", http.HandlerFunc(h.GetShortURLs))
+			router.Get("/{id}", http.HandlerFunc(h.GetShortURL))
+			router.Get("/ping", http.HandlerFunc(h.PingConnect))
+			router.Get("/api/user/urls", http.HandlerFunc(h.GetShortURLs))
 
-		r.Post("/", http.HandlerFunc(h.CreateShortURL))
-		r.Post("/api/shorten", http.HandlerFunc(h.CreateShortURLjson))
-		r.Post("/api/shorten/batch", http.HandlerFunc(h.BatchShortURLs))
+			router.Post("/", http.HandlerFunc(h.CreateShortURL))
+			router.Post("/api/shorten", http.HandlerFunc(h.CreateShortURLjson))
+			router.Post("/api/shorten/batch", http.HandlerFunc(h.BatchShortURLs))
 
-		r.Delete("/api/user/urls", http.HandlerFunc(h.DeleteShortURLs))
+			router.Delete("/api/user/urls", http.HandlerFunc(h.DeleteShortURLs))
+		})
+
+		r.Get("/debug/pprof/", pprof.Index)
+		r.Get("/debug/pprof/cmdline", pprof.Cmdline)
+		r.Get("/debug/pprof/profile", pprof.Profile)
+		r.Get("/debug/pprof/symbol", pprof.Symbol)
+		r.Get("/debug/pprof/trace", pprof.Trace)
+		r.Get("/debug/pprof/{cmd}", pprof.Index)
 	})
 }

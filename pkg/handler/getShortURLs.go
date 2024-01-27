@@ -16,6 +16,12 @@ func (h *Handler) GetShortURLs(w http.ResponseWriter, r *http.Request) {
 		logger.Log.Error("Cannot get UserID from context")
 	}
 
+	UserStatus, ok := utils.GetUserStatusFromContext(ctx)
+	if ok && UserStatus == "new_user" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	resp := h.services.GetShortURLs(ctx, UserID)
 
 	w.Header().Set("Content-Type", "application/json")

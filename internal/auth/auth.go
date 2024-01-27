@@ -27,6 +27,7 @@ func UserAuth(h http.Handler) http.Handler {
 				}
 
 				http.SetCookie(w, AuthCookie)
+				r = r.WithContext(context.WithValue(r.Context(), utils.ContextKeyUserStatus, "new_user"))
 
 			default:
 				logger.Log.Error("Internal server error. Can't get auth cookie from request.", zap.Error(err))
