@@ -1,13 +1,14 @@
 package auth
 
 import (
-	"go_link_shortener/internal/logger"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
 )
 
 type Claims struct {

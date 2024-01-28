@@ -2,9 +2,10 @@ package inmemoryrepository
 
 import (
 	"context"
-	"go_link_shortener/internal/models"
-	"go_link_shortener/pkg/repository"
 	"sync"
+
+	"github.com/0loff/go_link_shortener/internal/models"
+	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
 type InmemoryEntry struct {

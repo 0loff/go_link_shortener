@@ -1,14 +1,15 @@
 package handler
 
 import (
-	"go_link_shortener/internal/auth"
-	"go_link_shortener/internal/compressor"
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/pkg/service"
 	"net/http"
 	"net/http/pprof"
 
 	"github.com/go-chi/chi/v5"
+
+	"github.com/0loff/go_link_shortener/internal/auth"
+	"github.com/0loff/go_link_shortener/internal/compressor"
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/pkg/service"
 )
 
 type Handler struct {

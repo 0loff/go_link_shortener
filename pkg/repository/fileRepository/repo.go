@@ -2,10 +2,11 @@ package filerepository
 
 import (
 	"context"
-	filehandler "go_link_shortener/internal/fileHandler"
-	"go_link_shortener/internal/models"
-	"go_link_shortener/pkg/repository"
 	"log"
+
+	filehandler "github.com/0loff/go_link_shortener/internal/fileHandler"
+	"github.com/0loff/go_link_shortener/internal/models"
+	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
 type FileRepository struct {

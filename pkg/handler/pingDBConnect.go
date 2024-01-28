@@ -2,10 +2,11 @@ package handler
 
 import (
 	"context"
-	"go_link_shortener/internal/logger"
 	"net/http"
 
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
 )
 
 func (h *Handler) PingConnect(w http.ResponseWriter, r *http.Request) {

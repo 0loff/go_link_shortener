@@ -5,9 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/internal/models"
-	"go_link_shortener/pkg/repository"
 	"strings"
 
 	"github.com/jackc/pgerrcode"
@@ -15,6 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/internal/models"
+	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
 type DBRepository struct {

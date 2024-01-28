@@ -3,11 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/pkg/handler"
-	"go_link_shortener/pkg/repository"
-	"go_link_shortener/pkg/repository/mock"
-	"go_link_shortener/pkg/service"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +12,12 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/pkg/handler"
+	"github.com/0loff/go_link_shortener/pkg/repository"
+	"github.com/0loff/go_link_shortener/pkg/repository/mock"
+	"github.com/0loff/go_link_shortener/pkg/service"
 )
 
 type RequestHeaders map[string]string

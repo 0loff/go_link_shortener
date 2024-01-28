@@ -1,16 +1,17 @@
 package main
 
 import (
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/pkg/handler"
-	"go_link_shortener/pkg/repository"
-	dbrepository "go_link_shortener/pkg/repository/dbRepository"
-	filerepository "go_link_shortener/pkg/repository/fileRepository"
-	inmemoryrepository "go_link_shortener/pkg/repository/inmemoryRepository"
-	"go_link_shortener/pkg/service"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/pkg/handler"
+	"github.com/0loff/go_link_shortener/pkg/repository"
+	dbrepository "github.com/0loff/go_link_shortener/pkg/repository/dbRepository"
+	filerepository "github.com/0loff/go_link_shortener/pkg/repository/fileRepository"
+	inmemoryrepository "github.com/0loff/go_link_shortener/pkg/repository/inmemoryRepository"
+	"github.com/0loff/go_link_shortener/pkg/service"
 )
 
 var Router chi.Router

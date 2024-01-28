@@ -2,12 +2,13 @@ package handler
 
 import (
 	"encoding/json"
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/internal/models"
-	"go_link_shortener/internal/utils"
 	"net/http"
 
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/internal/models"
+	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
 func (h *Handler) BatchShortURLs(w http.ResponseWriter, r *http.Request) {

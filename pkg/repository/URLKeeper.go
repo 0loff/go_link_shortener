@@ -3,7 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	"go_link_shortener/internal/models"
+
+	"github.com/0loff/go_link_shortener/internal/models"
 )
 
 var (

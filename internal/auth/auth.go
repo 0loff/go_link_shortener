@@ -5,10 +5,10 @@ import (
 	"errors"
 	"net/http"
 
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/internal/utils"
-
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
 func UserAuth(h http.Handler) http.Handler {

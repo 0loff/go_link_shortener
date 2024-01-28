@@ -3,14 +3,15 @@ package service
 import (
 	"context"
 	"errors"
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/internal/models"
-	"go_link_shortener/pkg/base62"
-	"go_link_shortener/pkg/repository"
 	"sync"
 	"time"
 
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/internal/models"
+	"github.com/0loff/go_link_shortener/pkg/base62"
+	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
 type Service struct {

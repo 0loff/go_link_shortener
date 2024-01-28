@@ -2,11 +2,12 @@ package handler
 
 import (
 	"errors"
-	"go_link_shortener/internal/logger"
-	"go_link_shortener/pkg/repository"
 	"net/http"
 
 	"go.uber.org/zap"
+
+	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
 func (h *Handler) GetShortURL(w http.ResponseWriter, r *http.Request) {
