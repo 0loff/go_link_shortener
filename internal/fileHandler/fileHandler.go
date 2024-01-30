@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Структура атомарной записи для хранения в файле
 type (
 	Entry struct {
 		ID          int    `json:"uuid"`
@@ -26,6 +27,8 @@ type (
 	}
 )
 
+// Конструктор создания (открытия) файла для записи с возможностью преобразования
+// записи в json формат
 func NewProducer(filename string) (*Producer, error) {
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -38,19 +41,24 @@ func NewProducer(filename string) (*Producer, error) {
 	}, nil
 }
 
+// Создание записи в файле
 func (p *Producer) WriteEntry(entry *Entry) error {
 	return p.encoder.Encode(entry)
 }
 
+// Очистка файла от сохраненных записей
 func (p *Producer) Trunc() {
 	p.file.Seek(0, io.SeekStart)
 	p.file.Truncate(0)
 }
 
+// Закрытие файла
 func (p *Producer) Close() error {
 	return p.file.Close()
 }
 
+// Конструктор открытия файла для чтения сохраненных записей с возможностью
+// декодирования из формата json
 func NewConsumer(filename string) (*Consumer, error) {
 	file, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -63,6 +71,7 @@ func NewConsumer(filename string) (*Consumer, error) {
 	}, nil
 }
 
+// Чтение записи
 func (c *Consumer) ReadEntry() (*Entry, error) {
 	entry := &Entry{}
 	if err := c.decoder.Decode(entry); err != nil {
@@ -72,6 +81,7 @@ func (c *Consumer) ReadEntry() (*Entry, error) {
 	return entry, nil
 }
 
+// Закрытие файла
 func (c *Consumer) Close() error {
 	return c.file.Close()
 }

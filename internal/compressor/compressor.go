@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+// Middleware обработчки запроса, позволяющий декодировать входящие данные,
+// а так же кодировать исходящий ответ
 func GzipCompressor(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ow := w

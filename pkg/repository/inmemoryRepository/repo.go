@@ -8,6 +8,7 @@ import (
 	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
+// Структура записи сокращенного URL для хранения в slice
 type InmemoryEntry struct {
 	UserID      string
 	ShortURL    string
@@ -15,11 +16,13 @@ type InmemoryEntry struct {
 	IsDeleted   bool
 }
 
+// Структура репозитория для хранения сокращенных URL в памяти
 type InMemoryRepository struct {
 	URLEntries []InmemoryEntry
 	lock       *sync.Mutex
 }
 
+// Инициализация репозитория для хранения записей в памяти сокращенных URL
 func NewRepository() *InMemoryRepository {
 	return &InMemoryRepository{
 		URLEntries: []InmemoryEntry{},
@@ -27,6 +30,7 @@ func NewRepository() *InMemoryRepository {
 	}
 }
 
+// Поиск записи сокращенного URL по сгенерированному токену в slice
 func (ur *InMemoryRepository) FindByID(ctx context.Context, id string) (string, error) {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
@@ -44,6 +48,7 @@ func (ur *InMemoryRepository) FindByID(ctx context.Context, id string) (string, 
 	return "", repository.ErrURLNotFound
 }
 
+// Поиск записи сокращенного URL по оригинальному URL адресу
 func (ur *InMemoryRepository) FindByLink(ctx context.Context, link string) string {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
@@ -57,6 +62,7 @@ func (ur *InMemoryRepository) FindByLink(ctx context.Context, link string) strin
 	return ""
 }
 
+// Поиск всех записей сокращенных URL по пользователю
 func (ur *InMemoryRepository) FindByUser(ctx context.Context, uid string) []models.URLEntry {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
@@ -75,6 +81,7 @@ func (ur *InMemoryRepository) FindByUser(ctx context.Context, uid string) []mode
 	return URLEntries
 }
 
+// Создание записи сокращенного URL в slice
 func (ur *InMemoryRepository) SetShortURL(ctx context.Context, uid, shortURL, origURL string) (string, error) {
 	ur.lock.Lock()
 	defer ur.lock.Unlock()
@@ -94,6 +101,7 @@ func (ur *InMemoryRepository) SetShortURL(ctx context.Context, uid, shortURL, or
 	return shortURL, nil
 }
 
+// Создание множественной записи сокращенных URLs переданных пользователем в одном запросе
 func (ur *InMemoryRepository) BatchInsertShortURLS(ctx context.Context, uid string, urls []models.URLEntry) error {
 	for _, u := range urls {
 		ur.SetShortURL(ctx, uid, u.ShortURL, u.OriginalURL)
@@ -101,6 +109,7 @@ func (ur *InMemoryRepository) BatchInsertShortURLS(ctx context.Context, uid stri
 	return nil
 }
 
+// Установка флага удаления записи сокращенного URL
 func (ur *InMemoryRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) error {
 	var UpdatedEntries []InmemoryEntry
 	for _, entry := range ur.URLEntries {
@@ -117,10 +126,12 @@ func (ur *InMemoryRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry
 	return nil
 }
 
+// Получение количества записей всех сокращенных URLs в slice
 func (ur *InMemoryRepository) GetNumberOfEntries(ctx context.Context) int {
 	return len(ur.URLEntries)
 }
 
+// Мокированный метод проверки соединения с файлом для имплементации интерфейса URLKeeper
 func (ur *InMemoryRepository) PingConnect(ctx context.Context) error {
 	return nil
 }

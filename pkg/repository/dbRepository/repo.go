@@ -18,11 +18,14 @@ import (
 	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
+// Базовая структура репозитория взаимодействия с БД,
+// хранящая соединение и строку конфига для соединения с БД
 type DBRepository struct {
 	DB     *sql.DB
 	DSNcfg string
 }
 
+// Конструктор инициализации репозитория взаимодействия с БД postgresql
 func NewRepository(DSNstring string) *DBRepository {
 	conn, err := pgx.ParseConfig(DSNstring)
 	if err != nil {
@@ -43,6 +46,7 @@ func NewRepository(DSNstring string) *DBRepository {
 	return DBRepo
 }
 
+// Метод создания таблицы для хранения сохраненных URL и назначения дополнительных индексов
 func (dbrepo *DBRepository) CreateTable() {
 	_, err := dbrepo.DB.Exec("CREATE TABLE IF NOT EXISTS shorturls (id serial PRIMARY KEY, user_id TEXT NOT NULL, short_url TEXT NOT NULL, origin_url TEXT NOT NULL, is_deleted BOOL DEFAULT false)")
 	if err != nil {
@@ -55,6 +59,7 @@ func (dbrepo *DBRepository) CreateTable() {
 	}
 }
 
+// Поиск записи сокращенного URL по сгенерированному токену в базе данных
 func (dbrepo *DBRepository) FindByID(ctx context.Context, encodedURL string) (string, error) {
 	var Entry models.URLEntry
 	rows, err := dbrepo.DB.QueryContext(ctx, "SELECT short_url, origin_url, is_deleted FROM shorturls WHERE short_url = $1", encodedURL)
@@ -85,6 +90,7 @@ func (dbrepo *DBRepository) FindByID(ctx context.Context, encodedURL string) (st
 	return Entry.OriginalURL, nil
 }
 
+// Поиск записи сокращенного URL по оригинальному URL адресу
 func (dbrepo *DBRepository) FindByLink(ctx context.Context, link string) string {
 	row := dbrepo.DB.QueryRowContext(ctx, "SELECT short_url FROM shorturls WHERE origin_url = $1", link)
 
@@ -98,6 +104,7 @@ func (dbrepo *DBRepository) FindByLink(ctx context.Context, link string) string 
 	return shortURL
 }
 
+// Поиск всех записей сокращенных URL по пользователю
 func (dbrepo *DBRepository) FindByUser(ctx context.Context, uid string) []models.URLEntry {
 	var URLEntries []models.URLEntry
 
@@ -125,6 +132,7 @@ func (dbrepo *DBRepository) FindByUser(ctx context.Context, uid string) []models
 	return URLEntries
 }
 
+// Создание записи сокращенного URL в БД
 func (dbrepo *DBRepository) SetShortURL(ctx context.Context, userID, shortURL, origURL string) (string, error) {
 	_, err := dbrepo.DB.Exec("INSERT INTO shorturls (user_id, short_url, origin_url) VALUES ($1, $2, $3)", userID, shortURL, origURL)
 	if err != nil {
@@ -136,6 +144,7 @@ func (dbrepo *DBRepository) SetShortURL(ctx context.Context, userID, shortURL, o
 	return shortURL, err
 }
 
+// Создание множественной записи сокращенных URLs переданных пользователем в одном запросе
 func (dbrepo *DBRepository) BatchInsertShortURLS(ctx context.Context, uid string, urls []models.URLEntry) error {
 	var (
 		placeholders []string
@@ -171,6 +180,7 @@ func (dbrepo *DBRepository) BatchInsertShortURLS(ctx context.Context, uid string
 	return nil
 }
 
+// Установка флага удаления записи сокращенного URL
 func (dbrepo *DBRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) error {
 	ctx := context.Background()
 
@@ -204,6 +214,7 @@ func (dbrepo *DBRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) 
 	return tx.Commit(ctx)
 }
 
+// Получение количества записей всех сокращенных URLs в БД
 func (dbrepo *DBRepository) GetNumberOfEntries(ctx context.Context) int {
 	row := dbrepo.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM shorturls")
 
@@ -216,6 +227,7 @@ func (dbrepo *DBRepository) GetNumberOfEntries(ctx context.Context) int {
 	return Num
 }
 
+// Проверка состояния соединения c БД
 func (dbrepo *DBRepository) PingConnect(ctx context.Context) error {
 	err := dbrepo.DB.Ping()
 	if err != nil {

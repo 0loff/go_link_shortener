@@ -10,6 +10,8 @@ import (
 	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
+// Обработчик множественного удаления (установки флага статуса удаления) сокращенных URL пользователя
+// Формат тела запроса application/json
 func (h *Handler) DeleteShortURLs(w http.ResponseWriter, r *http.Request) {
 	var URLsList []string
 

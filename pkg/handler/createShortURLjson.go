@@ -12,6 +12,7 @@ import (
 	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
+// Обработчик создания и сохранения сокращенного URL пользователя, при передаче в формате application/json тела запроса
 func (h *Handler) CreateShortURLjson(w http.ResponseWriter, r *http.Request) {
 	var origURL models.CreateURLRequestPayload
 

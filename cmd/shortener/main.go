@@ -14,6 +14,7 @@ import (
 	"github.com/0loff/go_link_shortener/pkg/service"
 )
 
+// Переменная роутера chi для инициализации во время запуска приложения
 var Router chi.Router
 
 func main() {

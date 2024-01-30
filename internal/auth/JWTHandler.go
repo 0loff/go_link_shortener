@@ -11,6 +11,7 @@ import (
 	"github.com/0loff/go_link_shortener/internal/logger"
 )
 
+// Claims структура для хранения утверждений, входящих в состав JWT токена
 type Claims struct {
 	jwt.RegisteredClaims
 	UserID uuid.UUID
@@ -19,6 +20,7 @@ type Claims struct {
 const tokenExp = time.Hour * 3
 const secretKey = "secretkey"
 
+// Конструктор, создающий JWT token
 func BuildJWTString() (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
@@ -37,6 +39,7 @@ func BuildJWTString() (string, error) {
 	return tokenString, nil
 }
 
+// Метод получения ID пользователя из JWT токена, полученного из авторизационных cookies
 func GetUserID(authCookie *http.Cookie) (string, error) {
 	claims := &Claims{}
 

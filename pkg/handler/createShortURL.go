@@ -11,6 +11,7 @@ import (
 	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
+// Обработчик создания и сохранения сокращенного URL пользователя, при передаче в формате text/plain тела запроса
 func (h *Handler) CreateShortURL(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	UserID, ok := utils.GetUserIDFromContext(ctx)

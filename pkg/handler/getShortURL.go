@@ -10,6 +10,7 @@ import (
 	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
+// Обработчик получения сокращенного URL из хранилища по переданному оригинальному URL
 func (h *Handler) GetShortURL(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	link, err := h.services.GetShortURL(ctx, r.URL.Path[1:])

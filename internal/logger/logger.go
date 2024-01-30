@@ -1,3 +1,4 @@
+// Пакет для логирования в приложении.
 package logger
 
 import (
@@ -7,9 +8,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// Конструктор инициализации логгера Zap
 var Log *zap.Logger = zap.NewNop()
+
+// Упрощенный метод вызова ллоггера Zap с помощью синтаксического сахара
 var Sugar *zap.SugaredLogger
 
+// Инициализация механизма логирования в приложении
 func Initialize(level string) error {
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
@@ -30,6 +35,7 @@ func Initialize(level string) error {
 	return nil
 }
 
+// Middleware обработчик для логирования информации из запроса
 func RequestLogger(h http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

@@ -10,6 +10,7 @@ import (
 	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
+// Обработчик получения всех записей сокращенных URL для текущего пользователя
 func (h *Handler) GetShortURLs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	UserID, ok := utils.GetUserIDFromContext(ctx)

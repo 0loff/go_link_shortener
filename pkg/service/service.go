@@ -14,6 +14,7 @@ import (
 	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
+// Структура для инициализации сервиса
 type Service struct {
 	Repo         repository.URLKeeper
 	ShortURLHost string
@@ -21,6 +22,7 @@ type Service struct {
 	DelCh        chan models.DelURLEntry
 }
 
+// Конструктор инициализации сервиса при запуске приложения
 func NewService(Repo repository.URLKeeper, shortURLHost string) *Service {
 	service := &Service{
 		Repo:         Repo,
@@ -33,6 +35,7 @@ func NewService(Repo repository.URLKeeper, shortURLHost string) *Service {
 	return service
 }
 
+// Метод создания сокращенного URL с последующим вызовом репозитория для сохранения
 func (s *Service) CreateShortURL(ctx context.Context, uid, url string) (string, error) {
 	token := base62.NewBase62Encoder().EncodeString()
 
@@ -45,6 +48,7 @@ func (s *Service) CreateShortURL(ctx context.Context, uid, url string) (string, 
 	return shortURL, err
 }
 
+// Метод создания множества записей сокращенных URLs одним пользовательским запросом
 func (s *Service) SetBatchShortURLs(ctx context.Context, uid string, entries []models.BatchURLRequestEntry) []models.BatchURLResponseEntry {
 	batchEntries := []models.URLEntry{}
 	respEntries := []models.BatchURLResponseEntry{}
@@ -77,6 +81,7 @@ func (s *Service) SetBatchShortURLs(ctx context.Context, uid string, entries []m
 	return respEntries
 }
 
+// Метод получения сокращенного URL
 func (s *Service) GetShortURL(ctx context.Context, shortURL string) (string, error) {
 	test, err := s.Repo.FindByID(ctx, shortURL)
 	if err != nil {
@@ -85,6 +90,7 @@ func (s *Service) GetShortURL(ctx context.Context, shortURL string) (string, err
 	return test, nil
 }
 
+// Метод полуения нескольких записей сокращенных URLs по текущему пользователю
 func (s *Service) GetShortURLs(ctx context.Context, uid string) []models.URLEntry {
 	var UserURLs []models.URLEntry
 
@@ -103,6 +109,7 @@ func (s *Service) GetShortURLs(ctx context.Context, uid string) []models.URLEntr
 	return UserURLs
 }
 
+// Метод установки флага удаления сокращенных URLs, переданных списком в одном запросе
 func (s *Service) DelShortURLs(uid string, URLSList []string) {
 	var URLEnties []models.DelURLEntry
 
@@ -117,6 +124,7 @@ func (s *Service) DelShortURLs(uid string, URLSList []string) {
 	s.MergeChs(ShortURLSCh)
 }
 
+// Горутина, выполняющая запрос на удаление списка сокращенных урлов по таймингу (один раз в 10 секунд)
 func (s *Service) DeleteManager(URLCh chan models.DelURLEntry) {
 	ticker := time.NewTicker(10 * time.Second)
 
@@ -137,6 +145,7 @@ func (s *Service) DeleteManager(URLCh chan models.DelURLEntry) {
 	}
 }
 
+// Создание канала для постановки в очередь на удаление сокращенных URLs
 func (s *Service) ChGenerator(ShortURLSlist []models.DelURLEntry) chan models.DelURLEntry {
 	inputCh := make(chan models.DelURLEntry)
 
@@ -151,6 +160,7 @@ func (s *Service) ChGenerator(ShortURLSlist []models.DelURLEntry) chan models.De
 	return inputCh
 }
 
+// Реализация паттерна fanOut для мержа нескольких каналов на удаление в единую очередь для DeleteManager'a
 func (s *Service) MergeChs(resultChan ...chan models.DelURLEntry) {
 	var wg sync.WaitGroup
 

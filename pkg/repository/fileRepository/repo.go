@@ -9,16 +9,19 @@ import (
 	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
+// Структура репозитория файлового ранилища
 type FileRepository struct {
 	StorageFile string
 }
 
+// Инициализация репозитория для взаимодествия с файлом хранения записей сокращенных URL
 func NewRepository(fileName string) *FileRepository {
 	return &FileRepository{
 		StorageFile: fileName,
 	}
 }
 
+// Поиск записи сокращенного URL по сгенерированному токену в файле
 func (fr *FileRepository) FindByID(ctx context.Context, id string) (string, error) {
 
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
@@ -44,6 +47,7 @@ func (fr *FileRepository) FindByID(ctx context.Context, id string) (string, erro
 	}
 }
 
+// Поиск записи сокращенного URL по оригинальному URL адресу
 func (fr *FileRepository) FindByLink(ctx context.Context, link string) string {
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
 	if err != nil {
@@ -64,6 +68,7 @@ func (fr *FileRepository) FindByLink(ctx context.Context, link string) string {
 	}
 }
 
+// Поиск всех записей сокращенных URL по пользователю
 func (fr *FileRepository) FindByUser(ctx context.Context, uid string) []models.URLEntry {
 	var URLEntries []models.URLEntry
 
@@ -88,6 +93,7 @@ func (fr *FileRepository) FindByUser(ctx context.Context, uid string) []models.U
 	}
 }
 
+// Создание записи сокращенного URL в файле
 func (fr *FileRepository) SetShortURL(ctx context.Context, uid, shortURL, originURL string) (string, error) {
 
 	if fr.FindByLink(ctx, originURL) != "" {
@@ -105,6 +111,7 @@ func (fr *FileRepository) SetShortURL(ctx context.Context, uid, shortURL, origin
 	return shortURL, nil
 }
 
+// Создание множественной записи сокращенных URLs переданных пользователем в одном запросе
 func (fr *FileRepository) BatchInsertShortURLS(ctx context.Context, uid string, urls []models.URLEntry) error {
 	for _, u := range urls {
 		fr.WriteToFile(filehandler.Entry{
@@ -118,6 +125,7 @@ func (fr *FileRepository) BatchInsertShortURLS(ctx context.Context, uid string, 
 	return nil
 }
 
+// Установка флага удаления записи сокращенного URL
 func (fr *FileRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) error {
 	var URLEntries []filehandler.Entry
 
@@ -164,6 +172,7 @@ func (fr *FileRepository) SetDelShortURLS(ShortURLsList []models.DelURLEntry) er
 	return nil
 }
 
+// Метод создания записи в файле
 func (fr *FileRepository) WriteToFile(entry filehandler.Entry) {
 	Producer, err := filehandler.NewProducer(fr.StorageFile)
 	if err != nil {
@@ -174,6 +183,7 @@ func (fr *FileRepository) WriteToFile(entry filehandler.Entry) {
 	Producer.WriteEntry(&entry)
 }
 
+// Получение количества записей всех сокращенных URLs в файле
 func (fr *FileRepository) GetNumberOfEntries(ctx context.Context) int {
 	NumEntries := 0
 	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
@@ -190,6 +200,7 @@ func (fr *FileRepository) GetNumberOfEntries(ctx context.Context) int {
 	}
 }
 
+// Мокированный метод проверки соединения с файлом для имплементации интерфейса URLKeeper
 func (fr *FileRepository) PingConnect(ctx context.Context) error {
 	return nil
 }
