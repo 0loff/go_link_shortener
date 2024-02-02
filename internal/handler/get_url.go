@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/0loff/go_link_shortener/internal/logger"
-	"github.com/0loff/go_link_shortener/pkg/repository"
+	"github.com/0loff/go_link_shortener/internal/repository"
 )
 
 // Обработчик получения сокращенного URL из хранилища по переданному оригинальному URL

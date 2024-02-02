@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/0loff/go_link_shortener/internal/models"
-	"github.com/0loff/go_link_shortener/pkg/repository"
+	"github.com/0loff/go_link_shortener/internal/repository"
 )
 
 // Структура записи сокращенного URL для хранения в slice

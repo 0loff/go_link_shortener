@@ -1,6 +1,6 @@
 // auth модуль проверяет авторизацию пользователя, совершившего обращение к эндпоинту с запросом,
 // содержащим cookie Auth и user id, на основании которого происходит аутентификация пользователя.
-package auth
+package middleware
 
 import (
 	"context"
@@ -11,6 +11,8 @@ import (
 
 	"github.com/0loff/go_link_shortener/internal/logger"
 	"github.com/0loff/go_link_shortener/internal/utils"
+	"github.com/0loff/go_link_shortener/pkg/jwt"
+	"github.com/google/uuid"
 )
 
 // UserAuth - middleware обработчик, проверяющий наличие cookie в запросе.
@@ -26,9 +28,15 @@ func UserAuth(h http.Handler) http.Handler {
 			case errors.Is(err, http.ErrNoCookie):
 				logger.Log.Error("Authentication cookies were not set", zap.Error(err))
 
+				token, err := jwt.BuildJWTString(uuid.New())
+				if err != nil {
+					logger.Log.Error("Cannot create unique auth token", zap.Error(err))
+					panic(err)
+				}
+
 				AuthCookie = &http.Cookie{
 					Name:  "Auth",
-					Value: setAuthToken(),
+					Value: token,
 					Path:  "/",
 				}
 
@@ -40,7 +48,7 @@ func UserAuth(h http.Handler) http.Handler {
 			}
 		}
 
-		UserID, err := GetUserID(AuthCookie)
+		UserID, err := jwt.GetUserID(AuthCookie)
 		if err != nil {
 			logger.Log.Error("Failed to get user id from token", zap.Error(err))
 		}
@@ -49,15 +57,4 @@ func UserAuth(h http.Handler) http.Handler {
 
 		h.ServeHTTP(w, r)
 	})
-}
-
-// setAuthToken - метод для подготовки токена с последующей установкой в response cookie.
-func setAuthToken() string {
-	token, err := BuildJWTString()
-	if err != nil {
-		logger.Log.Error("Cannot create unique auth token", zap.Error(err))
-		panic(err)
-	}
-
-	return token
 }

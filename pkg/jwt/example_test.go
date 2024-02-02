@@ -1,14 +1,26 @@
-package auth
+package jwt
 
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 func ExampleGetUserID() {
+	userID, err := uuid.Parse("3462f28c-1c3a-457f-8849-c5216fbf9e16")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	token, err := BuildJWTString(userID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	authCookie := &http.Cookie{
 		Name:  "Auth",
-		Value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDY2OTM1MDQsIlVzZXJJRCI6IjM0NjJmMjhjLTFjM2EtNDU3Zi04ODQ5LWM1MjE2ZmJmOWUxNiJ9.AfZ55RiHueBTmvX0WyWmxA4MX4LrI7fN_D5-CbGb_xE",
+		Value: token,
 		Path:  "/",
 	}
 

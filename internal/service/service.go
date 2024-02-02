@@ -10,8 +10,8 @@ import (
 
 	"github.com/0loff/go_link_shortener/internal/logger"
 	"github.com/0loff/go_link_shortener/internal/models"
+	"github.com/0loff/go_link_shortener/internal/repository"
 	"github.com/0loff/go_link_shortener/pkg/base62"
-	"github.com/0loff/go_link_shortener/pkg/repository"
 )
 
 // Структура для инициализации сервиса

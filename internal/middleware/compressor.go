@@ -1,8 +1,10 @@
-package compressor
+package middleware
 
 import (
 	"net/http"
 	"strings"
+
+	"github.com/0loff/go_link_shortener/pkg/compressor"
 )
 
 // Middleware обработчки запроса, позволяющий декодировать входящие данные,
@@ -15,7 +17,7 @@ func GzipCompressor(h http.Handler) http.Handler {
 		supportGzip := strings.Contains(acceptEncoding, "gzip")
 
 		if supportGzip {
-			cw := newCompressWriter(w)
+			cw := compressor.NewCompressWriter(w)
 			ow = cw
 			defer cw.Close()
 		}
@@ -24,7 +26,7 @@ func GzipCompressor(h http.Handler) http.Handler {
 		sendsGzip := strings.Contains(contentEncoding, "gzip")
 
 		if sendsGzip {
-			cr, err := newCompressReader(r.Body)
+			cr, err := compressor.NewCompressReader(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return

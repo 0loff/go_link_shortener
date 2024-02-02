@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/0loff/go_link_shortener/internal/handler"
 	"github.com/0loff/go_link_shortener/internal/logger"
-	"github.com/0loff/go_link_shortener/pkg/handler"
-	"github.com/0loff/go_link_shortener/pkg/repository"
-	"github.com/0loff/go_link_shortener/pkg/repository/mock"
-	"github.com/0loff/go_link_shortener/pkg/service"
+	"github.com/0loff/go_link_shortener/internal/repository"
+	"github.com/0loff/go_link_shortener/internal/repository/mock"
+	"github.com/0loff/go_link_shortener/internal/service"
 )
 
 type RequestHeaders map[string]string

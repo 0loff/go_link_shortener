@@ -6,10 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/0loff/go_link_shortener/internal/auth"
-	"github.com/0loff/go_link_shortener/internal/compressor"
 	"github.com/0loff/go_link_shortener/internal/logger"
-	"github.com/0loff/go_link_shortener/pkg/service"
+	"github.com/0loff/go_link_shortener/internal/middleware"
+	"github.com/0loff/go_link_shortener/internal/service"
 )
 
 // Структура инициализации хэндлеров приложения
@@ -28,9 +27,9 @@ func (h *Handler) InitRoutes() chi.Router {
 
 	return r.Route("/", func(r chi.Router) {
 		r.Group(func(router chi.Router) {
-			router.Use(compressor.GzipCompressor)
+			router.Use(middleware.GzipCompressor)
 			router.Use(logger.RequestLogger)
-			router.Use(auth.UserAuth)
+			router.Use(middleware.UserAuth)
 
 			router.Get("/{id}", http.HandlerFunc(h.GetShortURL))
 			router.Get("/ping", http.HandlerFunc(h.PingConnect))

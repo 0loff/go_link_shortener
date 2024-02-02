@@ -15,7 +15,7 @@ import (
 
 	"github.com/0loff/go_link_shortener/internal/logger"
 	"github.com/0loff/go_link_shortener/internal/models"
-	"github.com/0loff/go_link_shortener/pkg/repository"
+	"github.com/0loff/go_link_shortener/internal/repository"
 )
 
 // Базовая структура репозитория взаимодействия с БД,

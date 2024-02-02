@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	filehandler "github.com/0loff/go_link_shortener/internal/fileHandler"
+	filehandler "github.com/0loff/go_link_shortener/internal/file_handler"
 	"github.com/0loff/go_link_shortener/internal/models"
-	"github.com/0loff/go_link_shortener/pkg/repository"
+	"github.com/0loff/go_link_shortener/internal/repository"
 )
 
 // Структура репозитория файлового ранилища

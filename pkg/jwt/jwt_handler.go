@@ -1,4 +1,4 @@
-package auth
+package jwt
 
 import (
 	"net/http"
@@ -21,14 +21,14 @@ const tokenExp = time.Hour * 3
 const secretKey = "secretkey"
 
 // Конструктор, создающий JWT token
-func BuildJWTString() (string, error) {
+func BuildJWTString(uid uuid.UUID) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		Claims{
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExp)),
 			},
-			UserID: uuid.New(),
+			UserID: uid,
 		})
 
 	tokenString, err := token.SignedString([]byte(secretKey))

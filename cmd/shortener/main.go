@@ -5,13 +5,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/0loff/go_link_shortener/internal/handler"
 	"github.com/0loff/go_link_shortener/internal/logger"
-	"github.com/0loff/go_link_shortener/pkg/handler"
-	"github.com/0loff/go_link_shortener/pkg/repository"
-	dbrepository "github.com/0loff/go_link_shortener/pkg/repository/dbRepository"
-	filerepository "github.com/0loff/go_link_shortener/pkg/repository/fileRepository"
-	inmemoryrepository "github.com/0loff/go_link_shortener/pkg/repository/inmemoryRepository"
-	"github.com/0loff/go_link_shortener/pkg/service"
+	"github.com/0loff/go_link_shortener/internal/repository"
+	dbrepository "github.com/0loff/go_link_shortener/internal/repository/db_repository"
+	filerepository "github.com/0loff/go_link_shortener/internal/repository/file_repository"
+	inmemoryrepository "github.com/0loff/go_link_shortener/internal/repository/inmemory_repository"
+	"github.com/0loff/go_link_shortener/internal/service"
 )
 
 // Переменная роутера chi для инициализации во время запуска приложения
