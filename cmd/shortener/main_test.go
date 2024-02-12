@@ -388,10 +388,10 @@ func TestRequestHandler(t *testing.T) {
 				"Accept-Encoding": "deflate",
 			},
 			header: "",
-			path:   "/",
-			body:   "",
+			path:   "/api/user/urls",
+			body:   "[\"OL0ZGlVC3dq\"]",
 			want: want{
-				expectedCode:   http.StatusMethodNotAllowed,
+				expectedCode:   http.StatusAccepted,
 				expectedHeader: "",
 				expectedBody:   "",
 			},
