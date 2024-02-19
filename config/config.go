@@ -1,19 +1,19 @@
-package main
+package config
 
 import (
 	"flag"
 	"os"
+	"strconv"
 )
 
-var config Config
-
-// Config - структура для хранения параметров инициализации приложения
+// Config - this is a structure for storing app init params
 type Config struct {
 	Host         string
 	ShortURLHost string
 	LogLevel     string
 	StorageFile  string
 	DatabaseDSN  string
+	EnableHTTPS  bool
 }
 
 // ConfigBuilder - структура, возвращающая подготовленный кофиг в ходе инициализации приложения
@@ -51,13 +51,25 @@ func (cb ConfigBuilder) SetDatabaseDSN(databaseDSN string) ConfigBuilder {
 	return cb
 }
 
+// SetEnableHTTPS - this is setting the https enable flag
+func (cb ConfigBuilder) SetEnableHTTPS(enableHTTPS string) ConfigBuilder {
+	isEnable, err := strconv.ParseBool(enableHTTPS)
+	if err != nil {
+		cb.config.EnableHTTPS = false
+		return cb
+	}
+
+	cb.config.EnableHTTPS = isEnable
+	return cb
+}
+
 // Build - метод для формирования результирующего конфига для инициализации приложения
 func (cb ConfigBuilder) Build() Config {
 	return cb.config
 }
 
 // NewConfigBuilder - метод вызываемый для определения значений конфига инициализации при старте приложения
-func NewConfigBuilder() {
+func NewConfigBuilder() Config {
 	var host string
 	flag.StringVar(&host, "a", "localhost:8080", "server host")
 
@@ -74,6 +86,9 @@ func NewConfigBuilder() {
 	var databaseDSN string
 	flag.StringVar(&databaseDSN, "d", "", "Database DSN config string")
 	// flag.StringVar(&databaseDSN, "d", "host=localhost port=5432 user=postgres password=root dbname=urls sslmode=disable", "Database DSN config string")
+
+	var enableHTTPS string
+	flag.StringVar(&enableHTTPS, "s", "0", "Is HTTPS server mode enabled")
 
 	flag.Parse()
 
@@ -93,15 +108,20 @@ func NewConfigBuilder() {
 		storageFile = envStorageFile
 	}
 
-	if envStorageFile := os.Getenv("DATABASE_DSN"); envStorageFile != "" {
-		databaseDSN = envStorageFile
+	if envDatabaseDSN := os.Getenv("DATABASE_DSN"); envDatabaseDSN != "" {
+		databaseDSN = envDatabaseDSN
 	}
 
-	config = new(ConfigBuilder).
+	if envEnableHTTPS := os.Getenv("ENABLE_HTTPS"); envEnableHTTPS != "" {
+		enableHTTPS = envEnableHTTPS
+	}
+
+	return new(ConfigBuilder).
 		SetHost(host).
 		SetShortLinkHost(shortURLHost).
 		SetLogLevel(logLevel).
 		SetStorageFile(storageFile).
 		SetDatabaseDSN(databaseDSN).
+		SetEnableHTTPS(enableHTTPS).
 		Build()
 }

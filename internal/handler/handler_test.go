@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/0loff/go_link_shortener/internal/handler"
+	"github.com/0loff/go_link_shortener/config"
 	"github.com/0loff/go_link_shortener/internal/logger"
 	"github.com/0loff/go_link_shortener/internal/repository"
 	"github.com/0loff/go_link_shortener/internal/repository/mock"
@@ -91,7 +91,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method string, requestHeader
 }
 
 func TestRequestHandler(t *testing.T) {
-	NewConfigBuilder()
+	Config := config.NewConfigBuilder()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -102,12 +102,12 @@ func TestRequestHandler(t *testing.T) {
 	repo.EXPECT().FindByID(gomock.Any(), "AOnykssfh8k").Return("", repository.ErrURLNotFound)
 	repo.EXPECT().SetShortURL(gomock.Any(), gomock.Any(), gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq", nil).AnyTimes()
 
-	services := service.NewService(repo, config.ShortURLHost)
+	services := service.NewService(repo, Config.ShortURLHost)
 
-	handlers := handler.NewHandler(services)
+	handlers := NewHandler(services)
 	Router := handlers.InitRoutes()
 
-	logger.Initialize(config.LogLevel)
+	logger.Initialize(Config.LogLevel)
 
 	ts := httptest.NewServer(Router)
 	defer ts.Close()

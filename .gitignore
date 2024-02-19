@@ -11,9 +11,13 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# encrypted pem files for TLS cert
+*.pem
+
 # Binaries
 cmd/shortener/main
 cmd/shortener/shortener
+cmd/staticlint/staticlint
 
 # Dependency directories (remove the comment below to include it)
 vendor/
