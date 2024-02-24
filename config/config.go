@@ -1,83 +1,133 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"log"
 	"os"
 	"strconv"
 )
 
+const (
+	defaultServerAddress = "localhost:8080"
+	defaultBaseURL       = "http://localhost:8080"
+	defaultLogLevel      = "info"
+)
+
 // Config - this is a structure for storing app init params
 type Config struct {
-	Host         string
-	ShortURLHost string
-	LogLevel     string
-	StorageFile  string
-	DatabaseDSN  string
-	EnableHTTPS  bool
+	ServerAddress string `json:"server_address"`
+	BaseURL       string `json:"base_url"`
+	LogLevel      string `json:"log_level"`
+	StorageFile   string `json:"file_storage_path"`
+	DatabaseDSN   string `json:"database_dsn"`
+	EnableHTTPS   bool   `json:"enable_https"`
 }
 
 // ConfigBuilder - структура, возвращающая подготовленный кофиг в ходе инициализации приложения
 type ConfigBuilder struct {
-	config Config
+	c Config
 }
 
-// SetHost - метод установки значения хоста в конфиг инициализации приложения
-func (cb ConfigBuilder) SetHost(host string) ConfigBuilder {
-	cb.config.Host = host
+// SetServerAddress - метод установки значения хоста в конфиг инициализации приложения
+func (cb *ConfigBuilder) SetServerAddress(host string) *ConfigBuilder {
+	if cb.c.ServerAddress != "" && host == defaultServerAddress {
+		return cb
+	}
+
+	cb.c.ServerAddress = host
 	return cb
 }
 
-// SetShortLinkHost - метод установки значения хоста для сокращенных urls в конфиг инициализации приложения
-func (cb ConfigBuilder) SetShortLinkHost(shortURLHost string) ConfigBuilder {
-	cb.config.ShortURLHost = shortURLHost
+// SetBaseURL - метод установки значения хоста для сокращенных urls в конфиг инициализации приложения
+func (cb *ConfigBuilder) SetBaseURL(baseURL string) *ConfigBuilder {
+	if cb.c.BaseURL != "" && baseURL == defaultBaseURL {
+		return cb
+	}
+
+	cb.c.BaseURL = baseURL
 	return cb
 }
 
 // SetLogLevel - метод установки уровня логирования в приложении в зависиомсти от режима запуска при инициализации
-func (cb ConfigBuilder) SetLogLevel(logLevel string) ConfigBuilder {
-	cb.config.LogLevel = logLevel
+func (cb *ConfigBuilder) SetLogLevel(logLevel string) *ConfigBuilder {
+	if cb.c.LogLevel != "" && logLevel == defaultLogLevel {
+		return cb
+	}
+
+	cb.c.LogLevel = logLevel
 	return cb
 }
 
 // SetStorageFile - метод установки названия и пути к файлу для хранения сокращенных urls в режиме сохранения в файл
-func (cb ConfigBuilder) SetStorageFile(storageFile string) ConfigBuilder {
-	cb.config.StorageFile = storageFile
+func (cb *ConfigBuilder) SetStorageFile(storageFile string) *ConfigBuilder {
+	if cb.c.StorageFile != "" && storageFile == "" {
+		return cb
+	}
+
+	cb.c.StorageFile = storageFile
 	return cb
 }
 
 // SetDatabaseDSN - метод установки заначения строки конфига для инициализации БД
-func (cb ConfigBuilder) SetDatabaseDSN(databaseDSN string) ConfigBuilder {
-	cb.config.DatabaseDSN = databaseDSN
+func (cb *ConfigBuilder) SetDatabaseDSN(databaseDSN string) *ConfigBuilder {
+	if cb.c.DatabaseDSN != "" && databaseDSN == "" {
+		return cb
+	}
+
+	cb.c.DatabaseDSN = databaseDSN
 	return cb
 }
 
 // SetEnableHTTPS - this is setting the https enable flag
-func (cb ConfigBuilder) SetEnableHTTPS(enableHTTPS string) ConfigBuilder {
-	isEnable, err := strconv.ParseBool(enableHTTPS)
-	if err != nil {
-		cb.config.EnableHTTPS = false
+func (cb *ConfigBuilder) SetEnableHTTPS(enableHTTPS string) *ConfigBuilder {
+	if cb.c.EnableHTTPS && enableHTTPS == "" {
 		return cb
 	}
 
-	cb.config.EnableHTTPS = isEnable
+	isEnable, err := strconv.ParseBool(enableHTTPS)
+	if err != nil {
+		cb.c.EnableHTTPS = false
+		return cb
+	}
+
+	cb.c.EnableHTTPS = isEnable
 	return cb
 }
 
 // Build - метод для формирования результирующего конфига для инициализации приложения
-func (cb ConfigBuilder) Build() Config {
-	return cb.config
+func (cb *ConfigBuilder) Build() Config {
+	return cb.c
+}
+
+func (cb *ConfigBuilder) loadFromFile(filename string) {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	err = json.NewDecoder(f).Decode(&cb.c)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // NewConfigBuilder - метод вызываемый для определения значений конфига инициализации при старте приложения
 func NewConfigBuilder() Config {
-	var host string
-	flag.StringVar(&host, "a", "localhost:8080", "server host")
+	var cb ConfigBuilder
 
-	var shortURLHost string
-	flag.StringVar(&shortURLHost, "b", "http://localhost:8080", "host for short link")
+	var configFile string
+	flag.StringVar(&configFile, "c", "", "path to json config file")
+
+	var serverAddress string
+	flag.StringVar(&serverAddress, "a", defaultServerAddress, "server host")
+
+	var baseURL string
+	flag.StringVar(&baseURL, "b", defaultBaseURL, "host for short link")
 
 	var logLevel string
-	flag.StringVar(&logLevel, "l", "info", "log level")
+	flag.StringVar(&logLevel, "l", defaultLogLevel, "log level")
 
 	var storageFile string
 	flag.StringVar(&storageFile, "f", "", "storage file full name")
@@ -88,16 +138,20 @@ func NewConfigBuilder() Config {
 	// flag.StringVar(&databaseDSN, "d", "host=localhost port=5432 user=postgres password=root dbname=urls sslmode=disable", "Database DSN config string")
 
 	var enableHTTPS string
-	flag.StringVar(&enableHTTPS, "s", "0", "Is HTTPS server mode enabled")
+	flag.StringVar(&enableHTTPS, "s", "", "Is HTTPS server mode enabled")
 
 	flag.Parse()
 
-	if envHost := os.Getenv("SERVER_ADDRES"); envHost != "" {
-		host = envHost
+	if envConfigFile := os.Getenv("CONFIG"); envConfigFile != "" {
+		configFile = envConfigFile
+	}
+
+	if envServerSddress := os.Getenv("SERVER_ADDRES"); envServerSddress != "" {
+		serverAddress = envServerSddress
 	}
 
 	if envBaseURL := os.Getenv("BASE_URL"); envBaseURL != "" {
-		shortURLHost = envBaseURL
+		baseURL = envBaseURL
 	}
 
 	if envLoglevel := os.Getenv("LOG_LEVEL"); envLoglevel != "" {
@@ -116,9 +170,13 @@ func NewConfigBuilder() Config {
 		enableHTTPS = envEnableHTTPS
 	}
 
-	return new(ConfigBuilder).
-		SetHost(host).
-		SetShortLinkHost(shortURLHost).
+	if configFile != "" {
+		cb.loadFromFile(configFile)
+	}
+
+	return cb.
+		SetServerAddress(serverAddress).
+		SetBaseURL(baseURL).
 		SetLogLevel(logLevel).
 		SetStorageFile(storageFile).
 		SetDatabaseDSN(databaseDSN).

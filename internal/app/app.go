@@ -29,9 +29,9 @@ func NewApp() *app {
 		cfg: config.NewConfigBuilder(),
 	}
 
-	app.useCase = *service.NewService(app.makeRepository(), app.cfg.ShortURLHost)
+	app.useCase = *service.NewService(app.makeRepository(), app.cfg.BaseURL)
 	app.httpServer = &http.Server{
-		Addr:    app.cfg.Host,
+		Addr:    app.cfg.ServerAddress,
 		Handler: handler.NewHandler(&app.useCase).InitRoutes(),
 	}
 
@@ -44,7 +44,7 @@ func (a *app) Run() error {
 		return err
 	}
 
-	logger.Sugar.Infoln("Host", a.cfg.Host)
+	logger.Sugar.Infoln("Host", a.cfg.ServerAddress)
 
 	if a.cfg.EnableHTTPS {
 		const (

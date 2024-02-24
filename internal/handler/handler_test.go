@@ -102,7 +102,7 @@ func TestRequestHandler(t *testing.T) {
 	repo.EXPECT().FindByID(gomock.Any(), "AOnykssfh8k").Return("", repository.ErrURLNotFound)
 	repo.EXPECT().SetShortURL(gomock.Any(), gomock.Any(), gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq", nil).AnyTimes()
 
-	services := service.NewService(repo, Config.ShortURLHost)
+	services := service.NewService(repo, Config.BaseURL)
 
 	handlers := NewHandler(services)
 	Router := handlers.InitRoutes()
