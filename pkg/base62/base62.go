@@ -3,7 +3,6 @@ package base62
 import (
 	"math/rand"
 	"strings"
-	"time"
 )
 
 const (
@@ -32,7 +31,7 @@ func encode(id uint64) string {
 }
 
 // Метод кодирования строки в base62 формат
-func (B62E *Base62Encoder) EncodeString() string {
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+func (B62E *Base62Encoder) EncodeString(seed uint64) string {
+	rnd := rand.New(rand.NewSource(int64(seed)))
 	return encode(rnd.Uint64())
 }

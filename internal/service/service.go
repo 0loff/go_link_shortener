@@ -37,7 +37,8 @@ func NewService(Repo repository.URLKeeper, shortURLHost string) *Service {
 
 // Метод создания сокращенного URL с последующим вызовом репозитория для сохранения
 func (s *Service) CreateShortURL(ctx context.Context, uid, url string) (string, error) {
-	token := base62.NewBase62Encoder().EncodeString()
+	seed := time.Now().UnixNano()
+	token := base62.NewBase62Encoder().EncodeString(uint64(seed))
 
 	shortURL, err := s.Repo.SetShortURL(ctx, uid, token, url)
 	if err != nil && errors.Is(err, repository.ErrConflict) {
@@ -53,11 +54,13 @@ func (s *Service) SetBatchShortURLs(ctx context.Context, uid string, entries []m
 	batchEntries := []models.URLEntry{}
 	respEntries := []models.BatchURLResponseEntry{}
 
+	seed := time.Now().UnixNano()
+
 	for _, u := range entries {
 		shortURL := s.Repo.FindByLink(ctx, u.OriginalURL)
 
 		if shortURL == "" {
-			shortURL = base62.NewBase62Encoder().EncodeString()
+			shortURL = base62.NewBase62Encoder().EncodeString(uint64(seed))
 
 			batchEntries = append(batchEntries, models.URLEntry{
 				ShortURL:    shortURL,
