@@ -23,5 +23,6 @@ type URLKeeper interface {
 	BatchInsertShortURLS(ctx context.Context, uid string, entries []models.URLEntry) error
 	SetDelShortURLS(URLSList []models.DelURLEntry) error
 	GetNumberOfEntries(ctx context.Context) int
+	GetMetrics() models.Metrics
 	PingConnect(ctx context.Context) error
 }

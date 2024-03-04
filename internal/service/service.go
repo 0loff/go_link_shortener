@@ -112,6 +112,11 @@ func (s *Service) GetShortURLs(ctx context.Context, uid string) []models.URLEntr
 	return UserURLs
 }
 
+// GetStatistics method for calling the repository method and passing the resulting metrics to the handler
+func (s *Service) GetStatistics() models.Metrics {
+	return s.Repo.GetMetrics()
+}
+
 // Метод установки флага удаления сокращенных URLs, переданных списком в одном запросе
 func (s *Service) DelShortURLs(uid string, URLSList []string) {
 	var URLEnties []models.DelURLEntry

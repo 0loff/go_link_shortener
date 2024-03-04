@@ -7,6 +7,7 @@ import (
 	"github.com/0loff/go_link_shortener/config"
 	"github.com/0loff/go_link_shortener/internal/handler"
 	"github.com/0loff/go_link_shortener/internal/repository"
+
 	dbrepository "github.com/0loff/go_link_shortener/internal/repository/db_repository"
 	filerepository "github.com/0loff/go_link_shortener/internal/repository/file_repository"
 	inmemoryrepository "github.com/0loff/go_link_shortener/internal/repository/inmemory_repository"
@@ -30,7 +31,7 @@ func NewApp() *App {
 	app.useCase = *service.NewService(app.makeRepository(), app.Cfg.BaseURL)
 	app.HttpServer = &http.Server{
 		Addr:    app.Cfg.ServerAddress,
-		Handler: handler.NewHandler(&app.useCase).InitRoutes(),
+		Handler: handler.NewHandler(&app.useCase, app.Cfg.TrustedSubnet).InitRoutes(),
 	}
 
 	return app

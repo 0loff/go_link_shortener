@@ -34,3 +34,9 @@ type DelURLEntry struct {
 	UserID   string `db:"user_id"`
 	ShortURL string `db:"short_url"`
 }
+
+// Stats - Using servise statistic structure
+type Metrics struct {
+	Urls  int `json:"urls"`
+	Users int `json:"users"`
+}

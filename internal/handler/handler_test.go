@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -20,14 +22,34 @@ import (
 	"github.com/0loff/go_link_shortener/internal/repository"
 	"github.com/0loff/go_link_shortener/internal/repository/mock"
 	"github.com/0loff/go_link_shortener/internal/service"
+	"github.com/0loff/go_link_shortener/pkg/jwt"
 )
 
 type RequestHeaders map[string]string
+
+const authorisedUser = "3462f28c-1c3a-457f-8849-c5216fbf9e16"
+const newUser = "3462f28c-1c3b-457f-8849-c5216fbf9e17"
+
+var userURLs []models.URLEntry
 
 func setRequestHeaders(headers RequestHeaders, req *http.Request) {
 	for header, value := range headers {
 		req.Header.Set(header, value)
 	}
+}
+
+func buildRequestCookie() string {
+	userID, err := uuid.Parse(authorisedUser)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	token, err := jwt.BuildJWTString(userID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return token
 }
 
 func compressRequestBody(t *testing.T, body string) *bytes.Buffer {
@@ -65,10 +87,12 @@ func requestResolver(t *testing.T, ts *httptest.Server, method string, requestHe
 	if ok && strings.Contains(requestHeaders["Content-Encoding"], "gzip") {
 		req, err := http.NewRequest(method, ts.URL+path, compressRequestBody(t, body))
 		require.NoError(t, err)
+		req.Header.Set("Cookie", "Auth="+buildRequestCookie())
 		return req
 	} else {
 		req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
 		require.NoError(t, err)
+		req.Header.Set("Cookie", "Auth="+buildRequestCookie())
 		return req
 	}
 }
@@ -97,21 +121,30 @@ func TestRequestHandler(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	repo := mock.NewMockURLKeeper(ctrl) // repo := repository.NewRepository(db)
+
+	repo := mock.NewMockURLKeeper(ctrl)
 
 	repo.EXPECT().FindByLink(gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq").AnyTimes()
 	repo.EXPECT().FindByLink(gomock.Any(), "https://pkg.go.dev/net/http").Return("Bl3YviNWhMr").AnyTimes()
 	repo.EXPECT().FindByID(gomock.Any(), "OL0ZGlVC3dq").Return("https://practicum.yandex.ru/", nil).AnyTimes()
 	repo.EXPECT().FindByID(gomock.Any(), "AOnykssfh8k").Return("", repository.ErrURLNotFound)
-	repo.EXPECT().FindByUser(gomock.Any(), gomock.Any).Return([]models.URLEntry{}).AnyTimes()
+	repo.EXPECT().FindByUser(gomock.Any(), gomock.Any).Return([]models.URLEntry{}).MaxTimes(1)
 	repo.EXPECT().SetShortURL(gomock.Any(), gomock.Any(), gomock.Any(), "https://practicum.yandex.ru/").Return("OL0ZGlVC3dq", nil).AnyTimes()
 	repo.EXPECT().SetShortURL(gomock.Any(), gomock.Any(), gomock.Any(), "https://pkg.go.dev/net/http").Return("Bl3YviNWhMr", repository.ErrConflict).AnyTimes()
 	repo.EXPECT().PingConnect(gomock.Any()).Return(nil).MaxTimes(1)
 	repo.EXPECT().PingConnect(gomock.Any()).Return(errors.New("Error")).MaxTimes(1)
+	repo.EXPECT().FindByUser(gomock.Any(), authorisedUser).Return(append(userURLs, models.URLEntry{
+		ShortURL:    "YHGitOGk8Wj",
+		OriginalURL: "https://pkg.go.dev/flag",
+	})).MaxTimes(1)
+	repo.EXPECT().GetMetrics().Return(models.Metrics{
+		Urls:  4,
+		Users: 2,
+	}).AnyTimes()
 
 	services := service.NewService(repo, Config.BaseURL)
 
-	handlers := NewHandler(services)
+	handlers := NewHandler(services, Config.TrustedSubnet)
 	Router := handlers.InitRoutes()
 
 	logger.Initialize(Config.LogLevel)
@@ -392,18 +425,18 @@ func TestRequestHandler(t *testing.T) {
 			},
 		},
 		{
-			name:   "test GET all user URLS request, new user",
+			name:   "test GET all user URLS request, with auth cookie",
 			method: http.MethodGet,
 			reqHeaders: RequestHeaders{
-				"Accept-Encoding": "gzip",
+				"Accept-Encoding": "deflate",
 			},
-			header: "",
+			header: "Content-Type",
 			path:   "/api/user/urls",
 			body:   "",
 			want: want{
-				expectedCode:   http.StatusUnauthorized,
-				expectedHeader: "",
-				expectedBody:   "",
+				expectedCode:   http.StatusOK,
+				expectedHeader: "application/json",
+				expectedBody:   "[{\"short_url\":\"http://localhost:8080/YHGitOGk8Wj\",\"original_url\":\"https://pkg.go.dev/flag\"}]\n",
 			},
 		},
 		{
