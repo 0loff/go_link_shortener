@@ -183,6 +183,34 @@ func (fr *FileRepository) WriteToFile(entry filehandler.Entry) {
 	Producer.WriteEntry(&entry)
 }
 
+// GetMetrics method to get statistics about saved short urls and active users
+func (fr *FileRepository) GetMetrics() models.Metrics {
+	var urls []string
+	users := make(map[string]struct{})
+
+	Consumer, err := filehandler.NewConsumer(fr.StorageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for {
+		entry, err := Consumer.ReadEntry()
+		if err != nil {
+			return models.Metrics{
+				Urls:  len(urls),
+				Users: len(users),
+			}
+		}
+
+		urls = append(urls, entry.ShortURL)
+
+		if _, ok := users[entry.UserID]; !ok {
+			users[entry.UserID] = struct{}{}
+		}
+	}
+
+}
+
 // Получение количества записей всех сокращенных URLs в файле
 func (fr *FileRepository) GetNumberOfEntries(ctx context.Context) int {
 	NumEntries := 0

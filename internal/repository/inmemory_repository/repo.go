@@ -131,6 +131,22 @@ func (ur *InMemoryRepository) GetNumberOfEntries(ctx context.Context) int {
 	return len(ur.URLEntries)
 }
 
+// GetMetrics method to get statistics about saved short urls and active users
+func (ur *InMemoryRepository) GetMetrics() models.Metrics {
+	users := make(map[string]struct{})
+
+	for _, entry := range ur.URLEntries {
+		if _, ok := users[entry.UserID]; !ok {
+			users[entry.UserID] = struct{}{}
+		}
+	}
+
+	return models.Metrics{
+		Urls:  len(ur.URLEntries),
+		Users: len(users),
+	}
+}
+
 // Мокированный метод проверки соединения с файлом для имплементации интерфейса URLKeeper
 func (ur *InMemoryRepository) PingConnect(ctx context.Context) error {
 	return nil

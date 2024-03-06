@@ -9,6 +9,7 @@ import (
 
 	"github.com/0loff/go_link_shortener/internal/app"
 	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/internal/tls"
 	"github.com/0loff/go_link_shortener/internal/utils"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -52,7 +53,7 @@ func Run(a *app.App) {
 				key  = "key.pem"
 			)
 
-			err := utils.TLSCertCreate(cert, key)
+			err := tls.TLSCertCreate(cert, key)
 			if err != nil {
 				log.Fatal(err)
 			}
