@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package shortener;
+
+option go_package = "go_link_shortener/proto";
+
+message CreateShortURLRequest {
+    string URL = 1;
+}
+
+message CreateShortURLResponse {
+    string result = 1;
+}
+
+message GetShortURLRequest {
+    string shortURL = 1;
+}
+
+message CorrelationOriginalURL {
+    string correlation_id = 1;
+    string original_url = 2;
+}
+
+message CreateBatchShortURLsRequest {
+    repeated CorrelationOriginalURL data = 1;
+}
+
+message CorrelationShortURL {
+    string correlation_id = 1;
+    string short_url = 2;
+}
+
+message CreateBatchShortURLsResponse {
+    repeated CorrelationShortURL data = 1;
+}
+
+message DeleteURLRequest {
+    repeated string data = 1;
+}
+
+message Relation {
+    string short_url = 1;
+    string original_url = 2;
+}
+
+message GetShortURLsResponse {
+    repeated Relation data = 1; 
+}
+
+message GetStatsResponse {
+    int32 urls = 1;
+    int32 users = 2;
+}
+
+service Shrotener {
+    rpc CreateShortURL(CreateShortURLRequest) returns (CreateShortURLResponse);
+    rpc GetShortURL(GetShortURLRequest) returns (google.protobuf.Empty);
+    rpc BatchShortURLs(CreateBatchShortURLsRequest) returns (CreateBatchShortURLsResponse);
+    rpc DeleteShortURLs(DeleteURLRequest) returns (google.protobuf.Empty);
+    rpc GetShortURLs(google.protobuf.Empty) returns (GetShortURLsResponse);
+    rpc GetStats(google.protobuf.Empty) returns (GetStatsResponse);
+}

@@ -54,9 +54,8 @@ func (s *Service) SetBatchShortURLs(ctx context.Context, uid string, entries []m
 	batchEntries := []models.URLEntry{}
 	respEntries := []models.BatchURLResponseEntry{}
 
-	seed := time.Now().UnixNano()
-
 	for _, u := range entries {
+		seed := time.Now().UnixNano()
 		shortURL := s.Repo.FindByLink(ctx, u.OriginalURL)
 
 		if shortURL == "" {

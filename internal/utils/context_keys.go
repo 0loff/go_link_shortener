@@ -9,6 +9,7 @@ type contextKey string
 var (
 	ContextKeyUserID     = contextKey("uid")
 	ContextKeyUserStatus = contextKey("user status")
+	ContextKeyAuthToken  = contextKey("auth token")
 )
 
 // Вывод ключа параметра передаваемого с помощью контекста в формате String
@@ -26,4 +27,10 @@ func GetUserIDFromContext(ctx context.Context) (string, bool) {
 func GetUserStatusFromContext(ctx context.Context) (string, bool) {
 	UserStatus, ok := ctx.Value(ContextKeyUserStatus).(string)
 	return UserStatus, ok
+}
+
+// Get Auth token from context
+func GetAuthTokenFromContext(ctx context.Context) (string, bool) {
+	AuthToken, ok := ctx.Value(ContextKeyAuthToken).(string)
+	return AuthToken, ok
 }

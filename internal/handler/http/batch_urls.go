@@ -11,7 +11,7 @@ import (
 	"github.com/0loff/go_link_shortener/internal/utils"
 )
 
-// Обработчик запроса на множественное добавление сокращенных URLs пользователя
+// BatchShortURLs - Handler for batch insertion of short URLs by user
 func (h *Handler) BatchShortURLs(w http.ResponseWriter, r *http.Request) {
 	entries := []models.BatchURLRequestEntry{}
 

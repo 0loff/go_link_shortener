@@ -5,19 +5,27 @@ import (
 	"net/http"
 
 	"github.com/0loff/go_link_shortener/config"
-	"github.com/0loff/go_link_shortener/internal/handler"
+	grpcHandler "github.com/0loff/go_link_shortener/internal/handler/grpc"
+	httpHandler "github.com/0loff/go_link_shortener/internal/handler/http"
 	"github.com/0loff/go_link_shortener/internal/repository"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	dbrepository "github.com/0loff/go_link_shortener/internal/repository/db_repository"
 	filerepository "github.com/0loff/go_link_shortener/internal/repository/file_repository"
 	inmemoryrepository "github.com/0loff/go_link_shortener/internal/repository/inmemory_repository"
 	"github.com/0loff/go_link_shortener/internal/service"
+
+	pb "github.com/0loff/go_link_shortener/proto"
+
+	"github.com/0loff/go_link_shortener/internal/interceptors"
 )
 
 // App - this is the main application structure
 type App struct {
 	Cfg        config.Config
 	HttpServer *http.Server
+	GrpcServer *grpc.Server
 
 	useCase service.Service
 }
@@ -31,10 +39,20 @@ func NewApp() *App {
 	app.useCase = *service.NewService(app.makeRepository(), app.Cfg.BaseURL)
 	app.HttpServer = &http.Server{
 		Addr:    app.Cfg.ServerAddress,
-		Handler: handler.NewHandler(&app.useCase, app.Cfg.TrustedSubnet).InitRoutes(),
+		Handler: httpHandler.NewHandler(&app.useCase, app.Cfg.TrustedSubnet).InitRoutes(),
 	}
+	app.GrpcServer = app.makeGRPCInstance()
 
 	return app
+}
+
+func (a *App) makeGRPCInstance() *grpc.Server {
+	s := grpc.NewServer(grpc.UnaryInterceptor(interceptors.AuthInterceptor))
+
+	reflection.Register(s)
+	pb.RegisterShrotenerServer(s, grpcHandler.NewHandler(&a.useCase, a.Cfg.TrustedSubnet))
+
+	return s
 }
 
 func (a *App) makeRepository() repository.URLKeeper {

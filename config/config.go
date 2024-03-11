@@ -150,6 +150,7 @@ func NewConfigBuilder() Config {
 
 	var trustedSubnet string
 	flag.StringVar(&trustedSubnet, "t", "", "trusted subnet for metrics endpoint")
+	// flag.StringVar(&trustedSubnet, "t", "192.168.0.0/24", "trusted subnet for metrics endpoint")
 
 	var enableHTTPS string
 	flag.StringVar(&enableHTTPS, "s", "", "Is HTTPS server mode enabled")

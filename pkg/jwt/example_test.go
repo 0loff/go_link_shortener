@@ -2,7 +2,6 @@ package jwt
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/google/uuid"
 )
@@ -18,13 +17,7 @@ func ExampleGetUserID() {
 		fmt.Println(err)
 	}
 
-	authCookie := &http.Cookie{
-		Name:  "Auth",
-		Value: token,
-		Path:  "/",
-	}
-
-	out1, err := GetUserID(authCookie)
+	out1, err := GetUserID(token)
 	if err != nil {
 		fmt.Println(err)
 	}
