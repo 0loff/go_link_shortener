@@ -21,6 +21,7 @@ type Config struct {
 	LogLevel      string `json:"log_level"`
 	StorageFile   string `json:"file_storage_path"`
 	DatabaseDSN   string `json:"database_dsn"`
+	TrustedSubnet string `json:"trusted_subnet"`
 	EnableHTTPS   bool   `json:"enable_https"`
 }
 
@@ -76,6 +77,16 @@ func (cb *ConfigBuilder) SetDatabaseDSN(databaseDSN string) *ConfigBuilder {
 	}
 
 	cb.c.DatabaseDSN = databaseDSN
+	return cb
+}
+
+// SetTrustedSubnet - this is the method for setting the trusted subnet CIDR value
+func (cb *ConfigBuilder) SetTrustedSubnet(trustedSubnet string) *ConfigBuilder {
+	if cb.c.TrustedSubnet != "" && trustedSubnet == "" {
+		return cb
+	}
+
+	cb.c.TrustedSubnet = trustedSubnet
 	return cb
 }
 
@@ -137,6 +148,10 @@ func NewConfigBuilder() Config {
 	flag.StringVar(&databaseDSN, "d", "", "Database DSN config string")
 	// flag.StringVar(&databaseDSN, "d", "host=localhost port=5432 user=postgres password=root dbname=urls sslmode=disable", "Database DSN config string")
 
+	var trustedSubnet string
+	flag.StringVar(&trustedSubnet, "t", "", "trusted subnet for metrics endpoint")
+	// flag.StringVar(&trustedSubnet, "t", "192.168.0.0/24", "trusted subnet for metrics endpoint")
+
 	var enableHTTPS string
 	flag.StringVar(&enableHTTPS, "s", "", "Is HTTPS server mode enabled")
 
@@ -166,6 +181,10 @@ func NewConfigBuilder() Config {
 		databaseDSN = envDatabaseDSN
 	}
 
+	if envTrustedSubnet := os.Getenv("TRUSTED_SUBNET"); envTrustedSubnet != "" {
+		trustedSubnet = envTrustedSubnet
+	}
+
 	if envEnableHTTPS := os.Getenv("ENABLE_HTTPS"); envEnableHTTPS != "" {
 		enableHTTPS = envEnableHTTPS
 	}
@@ -180,6 +199,7 @@ func NewConfigBuilder() Config {
 		SetLogLevel(logLevel).
 		SetStorageFile(storageFile).
 		SetDatabaseDSN(databaseDSN).
+		SetTrustedSubnet(trustedSubnet).
 		SetEnableHTTPS(enableHTTPS).
 		Build()
 }

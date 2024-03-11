@@ -48,7 +48,7 @@ func UserAuth(h http.Handler) http.Handler {
 			}
 		}
 
-		UserID, err := jwt.GetUserID(AuthCookie)
+		UserID, err := jwt.GetUserID(AuthCookie.Value)
 		if err != nil {
 			logger.Log.Error("Failed to get user id from token", zap.Error(err))
 		}

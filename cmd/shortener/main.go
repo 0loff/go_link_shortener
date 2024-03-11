@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/0loff/go_link_shortener/internal/app"
 	"github.com/0loff/go_link_shortener/internal/logger"
+	"github.com/0loff/go_link_shortener/internal/tls"
 	"github.com/0loff/go_link_shortener/internal/utils"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -52,7 +54,7 @@ func Run(a *app.App) {
 				key  = "key.pem"
 			)
 
-			err := utils.TLSCertCreate(cert, key)
+			err := tls.TLSCertCreate(cert, key)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -62,7 +64,16 @@ func Run(a *app.App) {
 		return a.HttpServer.ListenAndServe()
 	})
 	g.Go(func() error {
+		listen, err := net.Listen("tcp", ":3200")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return a.GrpcServer.Serve(listen)
+	})
+	g.Go(func() error {
 		<-gCtx.Done()
+		a.GrpcServer.GracefulStop()
 		return a.HttpServer.Shutdown(context.Background())
 	})
 

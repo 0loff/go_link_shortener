@@ -54,9 +54,8 @@ func (s *Service) SetBatchShortURLs(ctx context.Context, uid string, entries []m
 	batchEntries := []models.URLEntry{}
 	respEntries := []models.BatchURLResponseEntry{}
 
-	seed := time.Now().UnixNano()
-
 	for _, u := range entries {
+		seed := time.Now().UnixNano()
 		shortURL := s.Repo.FindByLink(ctx, u.OriginalURL)
 
 		if shortURL == "" {
@@ -110,6 +109,11 @@ func (s *Service) GetShortURLs(ctx context.Context, uid string) []models.URLEntr
 	}
 
 	return UserURLs
+}
+
+// GetStatistics method for calling the repository method and passing the resulting metrics to the handler
+func (s *Service) GetStatistics() models.Metrics {
+	return s.Repo.GetMetrics()
 }
 
 // Метод установки флага удаления сокращенных URLs, переданных списком в одном запросе

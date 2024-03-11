@@ -1,4 +1,4 @@
-package utils
+package tls
 
 import (
 	"crypto/rand"
@@ -62,20 +62,6 @@ func TLSCertCreate(certFile, keyFile string) error {
 	if err != nil {
 		return err
 	}
-
-	// Кодируем сертификат и ключ в формате PEM, который
-	// используется для хранения и обмена криптографическими ключами
-	// var certPEM bytes.Buffer
-	// pem.Encode(&certPEM, &pem.Block{
-	// 	Type:  "CERTIFICATE",
-	// 	Bytes: certBytes,
-	// })
-
-	// var privateKeyPEM bytes.Buffer
-	// pem.Encode(&privateKeyPEM, &pem.Block{
-	// 	Type:  "RSA PRIVATE KEY",
-	// 	Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-	// })
 
 	return nil
 }

@@ -227,6 +227,44 @@ func (dbrepo *DBRepository) GetNumberOfEntries(ctx context.Context) int {
 	return Num
 }
 
+// GetNumberOfUsers method to get the number of unique user entries from the database
+func (dbrepo *DBRepository) GetNumberOfUsers(ctx context.Context) int {
+	var users []string
+
+	rows, err := dbrepo.DB.Query("SELECT DISTINCT user_id FROM shorturls")
+	if err != nil {
+		logger.Log.Error("Unrecognized data from the database \n", zap.Error(err))
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user string
+		if err := rows.Scan(&user); err != nil {
+			logger.Log.Error("Unable to parse the received value", zap.Error(err))
+			continue
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return len(users)
+	}
+
+	return len(users)
+}
+
+// GetMetrics method to get statistics about saved short urls and active users
+func (dbrepo *DBRepository) GetMetrics() models.Metrics {
+	ctx := context.Background()
+
+	return models.Metrics{
+		Urls:  dbrepo.GetNumberOfEntries(ctx),
+		Users: dbrepo.GetNumberOfUsers(ctx),
+	}
+}
+
 // Проверка состояния соединения c БД
 func (dbrepo *DBRepository) PingConnect(ctx context.Context) error {
 	err := dbrepo.DB.Ping()

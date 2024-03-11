@@ -13,12 +13,16 @@ import (
 
 // Структура инициализации хэндлеров приложения
 type Handler struct {
-	services *service.Service
+	services      *service.Service
+	trustedSubnet string
 }
 
 // Конуструктор инициализации хэндлеров приложения
-func NewHandler(services *service.Service) *Handler {
-	return &Handler{services: services}
+func NewHandler(s *service.Service, ts string) *Handler {
+	return &Handler{
+		services:      s,
+		trustedSubnet: ts,
+	}
 }
 
 // Метод инициализации хэндлеров приложения
@@ -26,9 +30,10 @@ func (h *Handler) InitRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	return r.Route("/", func(r chi.Router) {
+		r.Use(logger.RequestLogger)
+
 		r.Group(func(router chi.Router) {
 			router.Use(middleware.GzipCompressor)
-			router.Use(logger.RequestLogger)
 			router.Use(middleware.UserAuth)
 
 			router.Get("/{id}", http.HandlerFunc(h.GetShortURL))
@@ -40,6 +45,11 @@ func (h *Handler) InitRoutes() chi.Router {
 			router.Post("/api/shorten/batch", http.HandlerFunc(h.BatchShortURLs))
 
 			router.Delete("/api/user/urls", http.HandlerFunc(h.DeleteShortURLs))
+		})
+
+		r.Group(func(router chi.Router) {
+			router.Use(middleware.IPChecker(h.trustedSubnet))
+			router.Get("/api/internal/stats", http.HandlerFunc(h.GetStats))
 		})
 
 		r.Get("/debug/pprof/", pprof.Index)

@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -40,10 +39,10 @@ func BuildJWTString(uid uuid.UUID) (string, error) {
 }
 
 // Метод получения ID пользователя из JWT токена, полученного из авторизационных cookies
-func GetUserID(authCookie *http.Cookie) (string, error) {
+func GetUserID(authtoken string) (string, error) {
 	claims := &Claims{}
 
-	token, err := jwt.ParseWithClaims(authCookie.Value, claims, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(authtoken, claims, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secretKey), nil
 	})
 
